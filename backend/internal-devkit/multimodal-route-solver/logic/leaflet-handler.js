@@ -20,7 +20,7 @@ function initializeLeaflet() {
  */
 function leafletCreateMarkers(_map, _markerPositions) {
     const startMarker = L.marker(
-        [7.0931191, 125.5037824], {
+        [7.09, 125.50], {
             draggable: true,
             icon: new L.Icon({
                 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -34,7 +34,7 @@ function leafletCreateMarkers(_map, _markerPositions) {
     ).addTo(_map);
 
     const stopMarker = L.marker(
-        [7.0571564, 125.5797422], {
+        [7.13, 125.62], {
             draggable: true,
             icon: new L.Icon({
                 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -101,4 +101,83 @@ function visualizePath(_map, _path) {
 function clearPathPolylines(_map, _pathLines) {
     if(_pathLines.length > 0) _pathLines.forEach(pl => _map.removeLayer(pl));
     return [];
+}
+
+const routeColorMap = {};
+const colorPool = ['green', 'red', 'purple', 'orange', 'blue', 'magenta', 'cyan'];
+let colorIdx2 = 0;
+let pathPolylines = [];
+/**
+ * Visualizes the calculated
+ * @param {*} _map Leaflet map instance
+ * @param {*} _path Dijkstra algorithm calculated path
+ * @param {*} _routes Array of loaded routes
+ * @param {*} _startCoord Start coordinate
+ * @param {*} _endCoord End coordinate
+ */
+function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
+    pathPolylines = clearPathPolylines(_map, pathPolylines);
+
+    function getCoord(_nodeId) {
+        if (_nodeId === 'START') return _startCoord;
+        if (_nodeId === 'END') return _endCoord;
+
+        const [routeId, idx] = _nodeId.split('-');
+        const route = _routes.find(r => r.routeFile.routeName === routeId);
+        return route?.truncatedPath?.[parseInt(idx)];
+    }
+
+    for (let i = 0; i < _path.length - 1; i++) {
+        const fr = _path[i];
+        const to = _path[i+1];
+
+        const fromCoord = getCoord(fr);
+        const toCoord = getCoord(to);
+
+        if(!fromCoord || !toCoord) {
+            console.warn(`Missing coordinate for segment ${fr} ${to}`);
+            continue;
+        }
+
+        const segmentCoords = [
+            [fromCoord[0], fromCoord[1]],
+            [toCoord[0], toCoord[1]]
+        ];
+
+        const isWalk = fr === 'START' || to === 'END';
+
+        if(isWalk) {
+            const layer = L.polyline(segmentCoords, {
+                color: 'yellow',
+                weight: 4,
+                dashArray: '8,8'
+            }).addTo(_map);
+            layer.bindTooltip(`Walk`, {
+                permanent: false,
+                direction: 'center',
+                offset: [0, -4],
+                className: 'walk-tooltip'
+            });
+            pathPolylines.push(layer);
+        } else {
+            const [routeId] = fr.split('-');            
+
+            if(!routeColorMap[routeId]) {
+                routeColorMap[routeId] = colorPool[colorIdx2 % colorPool.length];
+                colorIdx2++;
+            }
+
+            const layer = L.polyline(segmentCoords, {
+                color: routeColorMap[routeId],
+                weight: 5
+            }).addTo(_map);
+            layer.bindTooltip(`Jeepney Route: ${routeId}`, {
+                permanent: false,
+                direction: 'center',
+                offset: [0, -4],
+                className: 'jeep-tooltip'
+            });
+            pathPolylines.push(layer);
+        }
+    }
 }
