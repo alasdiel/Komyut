@@ -4,17 +4,17 @@ $(document).ready(function () {
     let routeGraph = {};
     let transferPoints = [];
 
-    let previewPathsPolyLines = [];    
+    let previewPathsPolyLines = [];
 
     //Initialize Leaflet/Open Street Map map kit
     const map = initializeLeaflet();
-    
+
     //Create the start and end markers
-    const markerPositions = {startPos: null, endPos: null};
+    const markerPositions = { startPos: null, endPos: null };
     leafletCreateMarkers(map, markerPositions);
 
     //Load the routes as soon as files are uploaded    
-    $('#rte-loader').on('change', async function () {        
+    $('#rte-loader').on('change', async function () {
         const files = this.files;
         clearRouteTable();
 
@@ -29,7 +29,7 @@ $(document).ready(function () {
 
                         const fullPath = await calculateOSRMPath(jsonObj);
 
-                        if(fullPath === null) {
+                        if (fullPath === null) {
                             reject(err);
                             return;
                         }
@@ -37,7 +37,7 @@ $(document).ready(function () {
 
                         //Visualize the full path                    
                         let { polyLine, color } = visualizePath(map, fullPath);
-                        appendToRouteTableInfo(jsonObj.routeName, color);   
+                        appendToRouteTableInfo(jsonObj.routeName, color);
                         previewPathsPolyLines.push(polyLine);
 
                         //Store loaded routes
@@ -48,48 +48,36 @@ $(document).ready(function () {
                         });
 
                         resolve();
-                    } catch(err) {
+                    } catch (err) {
                         console.error(err);
                         console.log(`Failed to load RouteFile ${file}`);
                         reject(err);
                     }
                 }
-                
+
                 reader.readAsText(file);
             });
         });
 
         try {
-            await Promise.all(fileLoadPromises);          
+            await Promise.all(fileLoadPromises);
             transferPoints = buildTransferPoints(loadedRoutes);
             routeGraph = createRouteGraph(loadedRoutes, transferPoints);
 
-            // previewPathsPolyLines.forEach(l => map.removeLayer(l));
-            // transferPoints.forEach(t => {
-            //     const fromCoord = t.from.coord;
-            //     const toCoord = t.to.coord;
-
-            //     L.polyline([fromCoord, toCoord], {
-            //         color: 'orange',
-            //         dashArray: '4',
-            //         weight: 2,
-            //         opacity: 0.6,
-            //     }).bindTooltip(`${t.from.routeId} → ${t.to.routeId}`).addTo(map);
-            // });            
+            // visualizeTransferPoints(map, transferPoints);
 
             console.log("All routes loaded");
-        } catch(e) {
+        } catch (e) {
             console.log("Some routes failed to load!");
             console.error(e);
         }
     });
 
     //On button click: Do multiroute calculation
-    $('#btn-calc').click(async function(e) {                  
-        // console.log(`p1: ${markerPositions.startPos}, p2: ${markerPositions.endPos}`);
+    $('#btn-calc').click(async function (e) {
         previewPathsPolyLines = clearPathPolylines(map, previewPathsPolyLines);
 
-        const {coordinates, path} = await findBestPath(
+        const { coordinates, path } = await findBestPath(
             [markerPositions.startPos.lat, markerPositions.startPos.lng],
             [markerPositions.endPos.lat, markerPositions.endPos.lng],
             routeGraph,

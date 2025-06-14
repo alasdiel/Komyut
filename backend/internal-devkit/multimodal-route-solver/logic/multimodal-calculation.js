@@ -22,10 +22,10 @@ function buildTransferPoints(_routes) {
     spatialIndex.load(indexedPoints);
 
     const transfers = [];
-    const TRANSFER_RADIUS = 200;
+    const TRANSFER_RADIUS = 500;
 
     indexedPoints.forEach(pt => {
-        const SPATIAL_TOLERANCE = 0.001;
+        const SPATIAL_TOLERANCE = 700;
         const nearby = spatialIndex.search({
             minX: pt.minX - SPATIAL_TOLERANCE,
             maxX: pt.maxX + SPATIAL_TOLERANCE,
@@ -34,7 +34,11 @@ function buildTransferPoints(_routes) {
         });
 
         const seen = new Set();
-        const pairKey = (a, b) => [a.routeId, b.routeId].sort().join('|');
+        const pairKey = (a, b) => {
+            const idA = `${a.routeId}-${a.index}`;
+            const idB = `${b.routeId}-${b.index}`;
+            return [idA, idB]
+        };
 
         nearby.forEach(other => {
             if (!seen.has(pairKey(pt, other))) {
@@ -51,7 +55,7 @@ function buildTransferPoints(_routes) {
                             from: {
                                 routeId: pt.routeId,
                                 coord: pt.coord,
-                                index: pt.index, 
+                                index: pt.index,
                                 nodeId: `${pt.routeId}-${pt.index}`
                             },
                             to: {
@@ -84,7 +88,7 @@ function findClosestNodeIndex(_route, _coord) {
             { latitude: pt[0], longitude: pt[1] },
             { latitude: _coord[0], longitude: _coord[1] },
         );
-        if(d < minDist) {
+        if (d < minDist) {
             minDist = d;
             closest = i;
         }
@@ -106,16 +110,16 @@ function createRouteGraph(_routes, _transfers) {
         const coords = r.truncatedPath;
         for (let i = 0; i < coords.length - 1; i++) {
             const fromId = `${r.routeFile.routeName}-${i}`;
-            const toId = `${r.routeFile.routeName}-${i + 1}`;            
+            const toId = `${r.routeFile.routeName}-${i + 1}`;
             const segmentCost = geolib.getDistance(
                 { latitude: coords[i][0], longitude: coords[i][1] },
-                { latitude: coords[i+1][0], longitude: coords[i+1][1] },
+                { latitude: coords[i + 1][0], longitude: coords[i + 1][1] },
             );
 
             const cost = segmentCost + CONTINUE_REWARD;
 
-            if(!graph[fromId]) graph[fromId] = [];
-            graph[fromId].push({to: toId, cost});
+            if (!graph[fromId]) graph[fromId] = [];
+            graph[fromId].push({ to: toId, cost });
         }
     });
 
@@ -130,26 +134,25 @@ function createRouteGraph(_routes, _transfers) {
         const fromId = `${t.from.routeId}-${fromIdx}`;
         const toId = `${t.to.routeId}-${toIdx}`;
 
-        if(!graph[fromId]) graph[fromId] = [];
-        if(!graph[toId]) graph[toId] = [];
+        if (!graph[fromId]) graph[fromId] = [];
+        if (!graph[toId]) graph[toId] = [];
 
         const transferCost = t.distance + TRANSFER_PENALTY;
 
-        graph[fromId].push({to: toId, cost: transferCost});
-        graph[toId].push({to: fromId, cost: transferCost});
+        graph[fromId].push({ to: toId, cost: transferCost });
+        graph[toId].push({ to: fromId, cost: transferCost });
     });
 
     return graph;
 }
 
-
 async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _routes) {
     function findClosestRouteNodes(_coord, _routes, limit = 5) {
         const all = [];
 
-        for(const r of _routes) {
-            for(let i = 0; i < r.truncatedPath.length; i++) {
-                const pt = r.truncatedPath[i];                        
+        for (const r of _routes) {
+            for (let i = 0; i < r.truncatedPath.length; i++) {
+                const pt = r.truncatedPath[i];
                 const distance = geolib.getDistance(
                     { latitude: _coord[0], longitude: _coord[1] },
                     { latitude: pt[0], longitude: pt[1] }
@@ -164,12 +167,12 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
             }
         }
 
-        return all.sort((a,b)=> a.distance - b.distance).slice(0, limit);
+        return all.sort((a, b) => a.distance - b.distance).slice(0, limit);
     }
 
     async function getWalkingGeometry(_fr, _to) {
         const coordStr = [[_fr[0], _fr[1]], [_to[0], _to[1]]]
-            .map(([lat,lng]) => `${lng},${lat}`).join(';');
+            .map(([lat, lng]) => `${lng},${lat}`).join(';');
         const url = `http://localhost:5000/route/v1/foot/${coordStr}?overview=false`;
 
         const res = await fetch(url);
@@ -185,19 +188,19 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
         const dist = {};
         const prev = {};
         const visited = new Set();
-        const queue = new TinyQueue([{node: _start, cost: 0}], (a,b)=>a.cost-b.cost);
+        const queue = new TinyQueue([{ node: _start, cost: 0 }], (a, b) => a.cost - b.cost);
 
-        for(const node in _graph) dist[node] = Infinity;
+        for (const node in _graph) dist[node] = Infinity;
         dist[_start] = 0;
 
-        while(queue.length) {
+        while (queue.length) {
             const { node, cost } = queue.pop();
-            if(visited.has(node)) continue;
+            if (visited.has(node)) continue;
             visited.add(node);
 
-            for(const edge of _graph[node] || []) {
+            for (const edge of _graph[node] || []) {
                 const alt = dist[node] + edge.cost;
-                if(alt < dist[edge.to]) {
+                if (alt < dist[edge.to]) {
                     dist[edge.to] = alt;
                     prev[edge.to] = node;
                     queue.push({ node: edge.to, cost: alt });
@@ -207,7 +210,7 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
 
         const path = [];
         let u = _end;
-        while(u) {
+        while (u) {
             path.unshift(u);
             u = prev[u];
         }
@@ -219,42 +222,42 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
     const endNode = 'END';
     const clonedGraph = structuredClone(_graph);
     const WALK_TO_SAMPLE_LIMIT = 5;
-    
+
     const startLinks = findClosestRouteNodes(_startCoord, _routes, WALK_TO_SAMPLE_LIMIT);
     clonedGraph[startNode] = [];
 
     const WALK_PENALTY = 300;
-    for(const link of startLinks) {
-        const {dist, geometry} = await getWalkingGeometry(_startCoord, link.coord);
+    for (const link of startLinks) {
+        const { dist, geometry } = await getWalkingGeometry(_startCoord, link.coord);
         clonedGraph[startNode].push({
             to: link.nodeId,
             cost: dist + WALK_PENALTY,
             geometry: geometry
-        });        
+        });
     }
-    
-    if (!clonedGraph[endNode]) clonedGraph[endNode] = [];    
-    for(const link of findClosestRouteNodes(_endCoord, _routes, WALK_TO_SAMPLE_LIMIT)) {
-        const {dist, geometry} = await getWalkingGeometry(link.coord, _endCoord);
-        if(!clonedGraph[link.nodeId]) clonedGraph[link.nodeId] = [];
+
+    if (!clonedGraph[endNode]) clonedGraph[endNode] = [];
+    for (const link of findClosestRouteNodes(_endCoord, _routes, WALK_TO_SAMPLE_LIMIT)) {
+        const { dist, geometry } = await getWalkingGeometry(link.coord, _endCoord);
+        if (!clonedGraph[link.nodeId]) clonedGraph[link.nodeId] = [];
         clonedGraph[link.nodeId].push({
             to: endNode,
             cost: dist + WALK_PENALTY,
             geometry: geometry
         });
     }
-    
+
     const { path, prev } = runDijkstra(clonedGraph, startNode, endNode);
 
     const coordinates = path.map(nodeId => {
         if (nodeId === startNode) return _startCoord;
         if (nodeId === endNode) return _endCoord;
 
-        const [routeId, index] = nodeId.split('-');                
+        const [routeId, index] = nodeId.split('-');
         const route = _routes.find(r => r.routeFile.routeName === routeId);
-        
+
         return route.truncatedPath[parseInt(index)];
     });
 
-    return {coordinates, path};
+    return { coordinates, path };
 }

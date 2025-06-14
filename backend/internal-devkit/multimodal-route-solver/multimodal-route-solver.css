@@ -22,3 +22,21 @@ body {
 .leaflet-control-attribution {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
+
+.geton-marker {
+    background-color: lime;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 0 6px lime;
+}
+
+.getoff-marker {
+    background-color: red;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    box-shadow: 0 0 6px red;
+}

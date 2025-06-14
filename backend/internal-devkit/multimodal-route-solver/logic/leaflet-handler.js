@@ -21,30 +21,30 @@ function initializeLeaflet() {
 function leafletCreateMarkers(_map, _markerPositions) {
     const startMarker = L.marker(
         [7.09, 125.50], {
-            draggable: true,
-            icon: new L.Icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            })
-        }
+        draggable: true,
+        icon: new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        })
+    }
     ).addTo(_map);
 
     const stopMarker = L.marker(
         [7.13, 125.62], {
-            draggable: true,
-            icon: new L.Icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            })
-        }
+        draggable: true,
+        icon: new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        })
+    }
     ).addTo(_map);
 
     //Set start pos when startMarker is dragged
@@ -61,7 +61,7 @@ function leafletCreateMarkers(_map, _markerPositions) {
         $('#end-coords').html(`(Blue) END: ${latlng.lat.toFixed(2)}, ${latlng.lng.toFixed(2)}`);
     });
 
-    return {startMarker, stopMarker};
+    return { startMarker, stopMarker };
 }
 
 let colorIdx = 0;
@@ -99,7 +99,7 @@ function visualizePath(_map, _path) {
  * @returns 
  */
 function clearPathPolylines(_map, _pathLines) {
-    if(_pathLines.length > 0) _pathLines.forEach(pl => _map.removeLayer(pl));
+    if (_pathLines.length > 0) _pathLines.forEach(pl => _map.removeLayer(pl));
     return [];
 }
 
@@ -129,12 +129,12 @@ function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
 
     for (let i = 0; i < _path.length - 1; i++) {
         const fr = _path[i];
-        const to = _path[i+1];
+        const to = _path[i + 1];
 
         const fromCoord = getCoord(fr);
         const toCoord = getCoord(to);
 
-        if(!fromCoord || !toCoord) {
+        if (!fromCoord || !toCoord) {
             console.warn(`Missing coordinate for segment ${fr} ${to}`);
             continue;
         }
@@ -144,40 +144,105 @@ function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
             [toCoord[0], toCoord[1]]
         ];
 
-        const isWalk = fr === 'START' || to === 'END';
+        const isStartOrEndWalk = fr === 'START' || to === 'END';
+        const [frRouteId] = fr.split('-');
+        const [toRouteId] = to.split('-');
 
-        if(isWalk) {
+        const isTransferWalk = (frRouteId !== toRouteId) && !isStartOrEndWalk;
+
+        if (isStartOrEndWalk || isTransferWalk) {
+            // Yellow dashed line
             const layer = L.polyline(segmentCoords, {
                 color: 'yellow',
                 weight: 4,
                 dashArray: '8,8'
-            }).addTo(_map);
-            layer.bindTooltip(`Walk`, {
-                permanent: false,
-                direction: 'center',
-                offset: [0, -4],
-                className: 'walk-tooltip'
-            });
+            }).bindTooltip(`Walk`).addTo(_map);
             pathPolylines.push(layer);
-        } else {
-            const [routeId] = fr.split('-');            
 
-            if(!routeColorMap[routeId]) {
-                routeColorMap[routeId] = colorPool[colorIdx2 % colorPool.length];
+            // Add markers for transfer walks
+            if (isTransferWalk) {
+                // Get off (fromCoord) - red
+                const getOffMarker = L.circleMarker(fromCoord, {
+                    radius: 6,
+                    color: 'red',
+                    fillColor: 'red',
+                    fillOpacity: 1
+                }).bindTooltip(`Get off ${frRouteId}`, { direction: "top", permanent: false }).addTo(_map);
+                pathPolylines.push(getOffMarker);
+
+                // Get on (toCoord) - green
+                const getOnMarker = L.circleMarker(toCoord, {
+                    radius: 6,
+                    color: 'lime',
+                    fillColor: 'lime',
+                    fillOpacity: 1
+                }).bindTooltip(`Get on ${toRouteId}`, { direction: "top", permanent: false }).addTo(_map);
+                pathPolylines.push(getOnMarker);
+            }
+
+        } else {
+            // Jeepney segment
+            if (!routeColorMap[frRouteId]) {
+                routeColorMap[frRouteId] = colorPool[colorIdx2 % colorPool.length];
                 colorIdx2++;
             }
 
             const layer = L.polyline(segmentCoords, {
-                color: routeColorMap[routeId],
+                color: routeColorMap[frRouteId],
                 weight: 5
             }).addTo(_map);
-            layer.bindTooltip(`Jeepney Route: ${routeId}`, {
+
+            layer.bindTooltip(`Jeepney Route: ${frRouteId}`, {
                 permanent: false,
                 direction: 'center',
                 offset: [0, -4],
                 className: 'jeep-tooltip'
             });
+
             pathPolylines.push(layer);
         }
     }
+}
+
+/**
+ * Shows transfer points in map
+ * @param {*} _map Leaflet map instance
+ * @param {*} _transferPoints Transfer points
+ */
+function visualizeTransferPoints(_map, _transferPoints) {
+    _transferPoints.forEach(t => {
+        const coords = [
+            [t.from.coord[0], t.from.coord[1]],
+            [t.to.coord[0], t.to.coord[1]]
+        ];
+
+        // Draw line between transfer points
+        const line = L.polyline(coords, {
+            color: 'gray',
+            dashArray: '4,6',
+            weight: 3
+        }).addTo(_map);
+
+        // Optional: Tooltip on the line
+        line.bindTooltip(`Transfer: ${t.from.routeId} → ${t.to.routeId}`, {
+            permanent: false,
+            direction: 'center',
+            className: 'transfer-tooltip'
+        });
+
+        // Optional: Circle markers for 'get off' and 'get on'
+        L.circleMarker(coords[0], {
+            radius: 5,
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 0.9
+        }).addTo(_map).bindTooltip('Get Off', { permanent: false, direction: 'top' });
+
+        L.circleMarker(coords[1], {
+            radius: 5,
+            color: 'green',
+            fillColor: 'green',
+            fillOpacity: 0.9
+        }).addTo(_map).bindTooltip('Get On', { permanent: false, direction: 'top' });
+    });
 }
