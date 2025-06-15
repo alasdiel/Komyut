@@ -3,7 +3,7 @@
  * @returns Returns leaflet map instance
  */
 function initializeLeaflet() {
-    const map = L.map('map').setView([7.0706, 125.4542], 12);
+    const map = L.map('map').setView([7.1006, 125.5742], 13);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -103,6 +103,20 @@ function clearPathPolylines(_map, _pathLines) {
     return [];
 }
 
+async function getWalkingPath(_fr, _to) {
+    const url = `http://localhost:5000/route/v1/foot/${_fr[1]},${_fr[0]};${_to[1]},${_to[0]}?overview=full&geometries=geojson`;
+
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+    if(json.code === 'Ok' && json.routes.length > 0) {
+        return json.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+    } else {
+        console.warn(`OSRM walking pathing failed!: ${json}`);
+        return [_fr, _to];
+    }
+}
+
 const routeColorMap = {};
 const colorPool = ['green', 'red', 'purple', 'orange', 'blue', 'magenta', 'cyan'];
 let colorIdx2 = 0;
@@ -115,7 +129,7 @@ let pathPolylines = [];
  * @param {*} _startCoord Start coordinate
  * @param {*} _endCoord End coordinate
  */
-function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
+async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
     pathPolylines = clearPathPolylines(_map, pathPolylines);
 
     function getCoord(_nodeId) {
@@ -151,8 +165,10 @@ function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCoord) {
         const isTransferWalk = (frRouteId !== toRouteId) && !isStartOrEndWalk;
 
         if (isStartOrEndWalk || isTransferWalk) {
+            const walkingPath = await getWalkingPath(fromCoord, toCoord);
+
             // Yellow dashed line
-            const layer = L.polyline(segmentCoords, {
+            const layer = L.polyline(walkingPath, {
                 color: 'yellow',
                 weight: 4,
                 dashArray: '8,8'

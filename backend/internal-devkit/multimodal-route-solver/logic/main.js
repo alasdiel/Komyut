@@ -33,7 +33,8 @@ $(document).ready(function () {
                             reject(err);
                             return;
                         }
-                        const shortPath = calculateTruncatedPath(fullPath, 200);
+                        const TRUNCATION_SEPARATION = 100;
+                        const shortPath = calculateTruncatedPath(fullPath, TRUNCATION_SEPARATION);
 
                         //Visualize the full path                    
                         let { polyLine, color } = visualizePath(map, fullPath);
@@ -60,9 +61,11 @@ $(document).ready(function () {
         });
 
         try {
-            await Promise.all(fileLoadPromises);
-            transferPoints = buildTransferPoints(loadedRoutes);
-            routeGraph = createRouteGraph(loadedRoutes, transferPoints);
+            await timeOperationMultiple([
+                ["LOAD ALL FILES", async () => { await Promise.all(fileLoadPromises); }],
+                ["BUILD TRANSFER POINTS", async () => { transferPoints = buildTransferPoints(loadedRoutes); }],
+                ["CREATE ROUTEGRAPH", async () => { routeGraph = createRouteGraph(loadedRoutes, transferPoints); }],
+            ]);
 
             // visualizeTransferPoints(map, transferPoints);
 
@@ -85,7 +88,9 @@ $(document).ready(function () {
             loadedRoutes
         );
 
-        visualizeCalculatedPath(map, path, loadedRoutes,
+        // const mergedLegs = mergePathLegs(path);
+
+        await visualizeCalculatedPath(map, path, loadedRoutes,
             [markerPositions.startPos.lat, markerPositions.startPos.lng],
             [markerPositions.endPos.lat, markerPositions.endPos.lng]
         );

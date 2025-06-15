@@ -22,10 +22,10 @@ function buildTransferPoints(_routes) {
     spatialIndex.load(indexedPoints);
 
     const transfers = [];
-    const TRANSFER_RADIUS = 500;
+    const TRANSFER_RADIUS = 200;
 
     indexedPoints.forEach(pt => {
-        const SPATIAL_TOLERANCE = 700;
+        const SPATIAL_TOLERANCE = 300;
         const nearby = spatialIndex.search({
             minX: pt.minX - SPATIAL_TOLERANCE,
             maxX: pt.maxX + SPATIAL_TOLERANCE,
@@ -146,6 +146,15 @@ function createRouteGraph(_routes, _transfers) {
     return graph;
 }
 
+/**
+ * Finds the best path using Dijkstra's algorithm
+ * @param {*} _startCoord Starting coordinate
+ * @param {*} _endCoord Ending coordinate
+ * @param {*} _graph RouteGraph in memory
+ * @param {*} _transferPoints Transferpoints in memory
+ * @param {*} _routes List of available routes
+ * @returns List of coordinates and graphs of best route on least distance
+ */
 async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _routes) {
     function findClosestRouteNodes(_coord, _routes, limit = 5) {
         const all = [];
@@ -226,7 +235,7 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
     const startLinks = findClosestRouteNodes(_startCoord, _routes, WALK_TO_SAMPLE_LIMIT);
     clonedGraph[startNode] = [];
 
-    const WALK_PENALTY = 300;
+    const WALK_PENALTY = 200;
     for (const link of startLinks) {
         const { dist, geometry } = await getWalkingGeometry(_startCoord, link.coord);
         clonedGraph[startNode].push({
@@ -260,4 +269,59 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
     });
 
     return { coordinates, path };
+}
+
+/**
+ * Merges the multiple jeepney legs from one leg into one long one
+ * @param {*} _path Result of findBestPath()
+ * @returns List of coordinates and graphs of best route on least distance (merged legs)
+ */
+function mergePathLegs(_path) {
+    const merged = [];
+
+    let i = 0;
+    while(i < _path.length - 1) {
+        const from = _path[i];
+        const to = _path[i + 1];
+
+        if(from === "START" || to === "END") {
+            merged.push({
+                mode: "walk",
+                from, to
+            });
+            i++;
+            continue;
+        }
+
+        const [routeIdFrom, idxFrom] = from.split('-');
+        const [routeIdTo, idxTo] = to.split('-');
+
+        if(routeIdFrom === routeIdTo) {
+            let j = i + 1;
+            while(j < _path.length - 1) {
+                const [r1] = _path[j].split('-');
+                const [r2] = _path[j+1].split('-');
+
+                if(r1 !== r2) break;
+                j++;
+            }
+
+            merged.push({
+                mode: "jeepney",
+                routeId: routeIdFrom,
+                from: from,
+                to: _path[j]
+            });
+
+            i = j+1;
+        } else {
+            merged.push({
+                mode: "walk",
+                from, to
+            });
+            i++;
+        }
+    }
+
+    return merged;
 }
