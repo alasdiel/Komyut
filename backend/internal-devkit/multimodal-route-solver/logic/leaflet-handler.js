@@ -118,11 +118,22 @@ async function getWalkingPath(_fr, _to) {
 }
 
 const routeColorMap = {};
-const colorPool = ['green', 'red', 'purple', 'orange', 'blue', 'magenta', 'cyan'];
+const colorPool = [
+    '#AEC6CF', // pastel blue
+    '#FFB347', // pastel orange
+    '#77DD77', // pastel green
+    '#CBAACB', // pastel purple
+    '#FFD1DC', // pastel pink
+    '#FDFD96', // pastel yellow
+    '#B0E0E6', // pastel cyan
+    '#F4A7B9', // pastel rose
+    '#E6E6FA', // lavender
+    '#D5AAFF'  // light violet
+];
 let colorIdx2 = 0;
 let pathPolylines = [];
 /**
- * Visualizes the calculated
+ * Visualizes the calculated path
  * @param {*} _map Leaflet map instance
  * @param {*} _path Dijkstra algorithm calculated path
  * @param {*} _routes Array of loaded routes
@@ -213,6 +224,97 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
                 direction: 'center',
                 offset: [0, -4],
                 className: 'jeep-tooltip'
+            });
+
+            pathPolylines.push(layer);
+        }
+    }
+}
+
+/**
+ * Visualizes the calculated merged path
+ * @param {*} _map Leaflet map instance
+ * @param {*} _merged Dijkstra algorithm calculated path
+ * @param {*} _routes Array of loaded routes
+ * @param {*} _startCoord Start coordinate
+ * @param {*} _endCoord End coordinate
+ */
+async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord, _endCoord) {
+    pathPolylines = clearPathPolylines(_map, pathPolylines);
+
+    function getCoord(_nodeId) {
+        if (_nodeId === 'START') return _startCoord;
+        if (_nodeId === 'END') return _endCoord;
+
+        const [routeId, idx] = _nodeId.split('-');
+        const route = _routes.find(r => r.routeFile.routeName === routeId);
+        return route?.truncatedPath?.[parseInt(idx)];
+    }
+
+    for(const leg of _merged) {
+        const coords = leg.nodes.map(getCoord).filter(Boolean);
+
+        if(coords.length < 2) continue;
+
+        if(leg.type === 'walk') {
+            const walkingPath = await getWalkingPath(coords[0], coords[coords.length - 1]);
+
+            const walkPolyLine = L.polyline(walkingPath, {
+                color: 'yellow',
+                weight: 4,
+                dashArray: '8,8'
+            }).bindTooltip(`Walk`).addTo(_map);
+            pathPolylines.push(walkPolyLine);
+
+            const isTransfer = !['START', 'END'].includes(leg.nodes[0]) && !['START', 'END'].includes(leg.nodes[1]);
+            if(isTransfer) {
+                const frRoute = leg.nodes[0].split('-')[0];
+                const toRoute = leg.nodes[1].split('-')[0];
+
+                const getOffMarker = L.circleMarker(coords[0], {
+                    radius: 6,
+                    color: 'red',
+                    fillColor: 'red',
+                    fillOpacity: 1,
+                    className: 'getoff-marker'
+                }).bindTooltip(`Get off ${frRoute}`, {direction: 'top'}).addTo(_map);
+                pathPolylines.push(getOffMarker);
+
+                const getOnMarker = L.circleMarker(coords[coords.length - 1], {
+                    radius: 6,
+                    color: 'lime',
+                    fillColor: 'lime',
+                    fillOpacity: 1,
+                    className: 'geton-marker'
+                }).bindTooltip(`Get on ${toRoute}`, {direction: 'top'}).addTo(_map);
+                pathPolylines.push(getOnMarker);
+            }
+        } else if (leg.type === 'jeepney') {
+            // Jeepney segment
+            if (!routeColorMap[leg.routeId]) {
+                routeColorMap[leg.routeId] = colorPool[colorIdx2 % colorPool.length];
+                colorIdx2++;
+            }
+
+            const layer = L.polyline(coords, {
+                color: routeColorMap[leg.routeId],
+                weight: 8,
+                className: 'jeepney-route'
+            }).addTo(_map);
+
+            layer.bindTooltip(`Jeepney Route: ${leg.routeId}`, {
+                permanent: false,
+                direction: 'center',
+                offset: [0, -4],
+                className: 'jeep-tooltip'
+            });
+
+            layer.arrowheads({
+                frequency: '200px',                
+                size: '20px',
+                color: routeColorMap[leg.routeId],
+                fill: true,
+                offsets: { start: '15px' }
             });
 
             pathPolylines.push(layer);

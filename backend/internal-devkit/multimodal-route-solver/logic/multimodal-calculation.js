@@ -22,10 +22,10 @@ function buildTransferPoints(_routes) {
     spatialIndex.load(indexedPoints);
 
     const transfers = [];
-    const TRANSFER_RADIUS = 200;
+    const TRANSFER_RADIUS = 500;
 
     indexedPoints.forEach(pt => {
-        const SPATIAL_TOLERANCE = 300;
+        const SPATIAL_TOLERANCE = 700;
         const nearby = spatialIndex.search({
             minX: pt.minX - SPATIAL_TOLERANCE,
             maxX: pt.maxX + SPATIAL_TOLERANCE,
@@ -182,7 +182,7 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
     async function getWalkingGeometry(_fr, _to) {
         const coordStr = [[_fr[0], _fr[1]], [_to[0], _to[1]]]
             .map(([lat, lng]) => `${lng},${lat}`).join(';');
-        const url = `http://localhost:5000/route/v1/foot/${coordStr}?overview=false`;
+        const url = `http://localhost:5000/route/v1/bike/${coordStr}?overview=false`;
 
         const res = await fetch(url);
         const json = await res.json();
@@ -277,51 +277,35 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
  * @returns List of coordinates and graphs of best route on least distance (merged legs)
  */
 function mergePathLegs(_path) {
-    const merged = [];
+    const legs = [];
 
-    let i = 0;
-    while(i < _path.length - 1) {
-        const from = _path[i];
-        const to = _path[i + 1];
+    let currentLeg = null;
 
-        if(from === "START" || to === "END") {
-            merged.push({
-                mode: "walk",
-                from, to
-            });
-            i++;
-            continue;
-        }
+    function getLegType(_fr, _to) {
+        if(_fr === 'START' || _to === 'END') return 'walk';
+        const [frRoute] = _fr.split('-');
+        const [toRoute] = _to.split('-');
 
-        const [routeIdFrom, idxFrom] = from.split('-');
-        const [routeIdTo, idxTo] = to.split('-');
-
-        if(routeIdFrom === routeIdTo) {
-            let j = i + 1;
-            while(j < _path.length - 1) {
-                const [r1] = _path[j].split('-');
-                const [r2] = _path[j+1].split('-');
-
-                if(r1 !== r2) break;
-                j++;
-            }
-
-            merged.push({
-                mode: "jeepney",
-                routeId: routeIdFrom,
-                from: from,
-                to: _path[j]
-            });
-
-            i = j+1;
-        } else {
-            merged.push({
-                mode: "walk",
-                from, to
-            });
-            i++;
-        }
+        return frRoute === toRoute ? 'jeepney' : 'walk';
     }
 
-    return merged;
+    for(let i = 0; i <_path.length - 1; i++) {
+        const fr = _path[i];
+        const to = _path[i+1];
+        const type = getLegType(fr, to);
+
+        if(!currentLeg || currentLeg.type !== type || (type === 'jeepney' && currentLeg.routeId !== fr.split('-')[0])) {
+            if(currentLeg) legs.push(currentLeg);
+            currentLeg = {
+                type,
+                nodes: [fr],
+                routeId: type === 'jeepney' ? fr.split('-')[0] : null
+            };
+        }
+
+        currentLeg.nodes.push(to);
+    }
+
+    if(currentLeg) legs.push(currentLeg);
+    return legs;
 }

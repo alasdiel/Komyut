@@ -61,6 +61,7 @@ $(document).ready(function () {
         });
 
         try {
+            //Load route files and create the caches: transfer points and route graph
             await timeOperationMultiple([
                 ["LOAD ALL FILES", async () => { await Promise.all(fileLoadPromises); }],
                 ["BUILD TRANSFER POINTS", async () => { transferPoints = buildTransferPoints(loadedRoutes); }],
@@ -78,8 +79,10 @@ $(document).ready(function () {
 
     //On button click: Do multiroute calculation
     $('#btn-calc').click(async function (e) {
+        //Clear previous polylines
         previewPathsPolyLines = clearPathPolylines(map, previewPathsPolyLines);
 
+        //Find best path using Dijkstra's (USE A* in the future)
         const { coordinates, path } = await findBestPath(
             [markerPositions.startPos.lat, markerPositions.startPos.lng],
             [markerPositions.endPos.lat, markerPositions.endPos.lng],
@@ -88,13 +91,20 @@ $(document).ready(function () {
             loadedRoutes
         );
 
-        // const mergedLegs = mergePathLegs(path);
+        //Merge all waypoints of one jeepney ride
+        const mergedLegs = mergePathLegs(path);
 
-        await visualizeCalculatedPath(map, path, loadedRoutes,
+        // await visualizeCalculatedPath(map, path, loadedRoutes,
+        //     [markerPositions.startPos.lat, markerPositions.startPos.lng],
+        //     [markerPositions.endPos.lat, markerPositions.endPos.lng]
+        // );
+
+        //Visualize merged paths
+        await visualizeCalculatedMergedPath(map, mergedLegs, loadedRoutes,
             [markerPositions.startPos.lat, markerPositions.startPos.lng],
             [markerPositions.endPos.lat, markerPositions.endPos.lng]
         );
 
-        console.log(path);
+        // console.log(path);
     });
 });
