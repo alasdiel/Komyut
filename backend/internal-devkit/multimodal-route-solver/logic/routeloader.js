@@ -51,3 +51,36 @@ function calculateTruncatedPath(_fullPath, _interval) {
 
     return truncatedCoords;
 }
+
+/**
+ * Generates a map of truncated waypoints => full waypoint equivalent
+ * @param {*} _route Route file to select truncated and fullPaths from
+ * @returns mapping
+ */
+function calculateTruncatedFullMapping(_tPath, _fPath, _separation) {
+    const mapping = [];
+
+    for (let i = 0; i < _tPath.length; i++) {
+        const tCoord = _tPath[i];
+        let minDist = Infinity;
+        let closestIdx = -1;
+
+        for (let j = 0; j < _fPath.length; j++) {
+            const fCoord = _fPath[j];
+            
+            const dist = geolib.getDistance(
+                { longitude: tCoord[0], latitude: tCoord[1] },
+                { longitude: fCoord[0], latitude: fCoord[1] },
+            );
+
+            if(dist < minDist) {
+                minDist = dist;
+                closestIdx = j;
+            }
+        }
+
+        mapping.push(closestIdx);
+    }
+
+    return mapping;
+}

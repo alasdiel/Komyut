@@ -27,14 +27,21 @@ $(document).ready(function () {
                         //Create JSON object from rte file
                         const jsonObj = JSON.parse(e.target.result);
 
+                        //From set of coordinates, re-calculate the full route
                         const fullPath = await calculateOSRMPath(jsonObj);
-
                         if (fullPath === null) {
                             reject(err);
                             return;
                         }
-                        const TRUNCATION_SEPARATION = 100;
-                        const shortPath = calculateTruncatedPath(fullPath, TRUNCATION_SEPARATION);
+
+                        //Create a shorter list of coordinates as path, reducing coords to reduce calculations
+                        const TRUNCATION_SEPARATION = 100; //METERS
+                        const shortPath = calculateTruncatedPath(fullPath, TRUNCATION_SEPARATION);                        
+
+                        //Maps truncated paths to their full conterpart
+                        const MAPPING_SEPARATION = 10; //METERS
+                        const mapping = calculateTruncatedFullMapping(shortPath, fullPath, MAPPING_SEPARATION);
+                        console.log(mapping);
 
                         //Visualize the full path                    
                         let { polyLine, color } = visualizePath(map, fullPath);
@@ -42,11 +49,15 @@ $(document).ready(function () {
                         previewPathsPolyLines.push(polyLine);
 
                         //Store loaded routes
-                        loadedRoutes.push({
+                        const lr = {
                             routeFile: jsonObj,
-                            processedPath: fullPath,
-                            truncatedPath: shortPath
-                        });
+                            fullPath: fullPath,
+                            truncatedPath: shortPath,
+                            mapping: mapping
+                        };
+                        loadedRoutes.push(lr);         
+                        
+                        // debugVisualizeTruncatedToFullMapping(map, lr);
 
                         resolve();
                     } catch (err) {
@@ -68,7 +79,7 @@ $(document).ready(function () {
                 ["CREATE ROUTEGRAPH", async () => { routeGraph = createRouteGraph(loadedRoutes, transferPoints); }],
             ]);
 
-            // visualizeTransferPoints(map, transferPoints);
+            // debugVisualizeTransferPoints(map, transferPoints);
 
             console.log("All routes loaded");
         } catch (e) {

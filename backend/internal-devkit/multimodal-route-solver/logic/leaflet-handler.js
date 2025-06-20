@@ -171,7 +171,7 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
 
         const isStartOrEndWalk = fr === 'START' || to === 'END';
         const [frRouteId] = fr.split('-');
-        const [toRouteId] = to.split('-');
+        const [toRouteId] = to.split('-');        
 
         const isTransferWalk = (frRouteId !== toRouteId) && !isStartOrEndWalk;
 
@@ -242,17 +242,49 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
 async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord, _endCoord) {
     pathPolylines = clearPathPolylines(_map, pathPolylines);
 
-    function getCoord(_nodeId) {
-        if (_nodeId === 'START') return _startCoord;
-        if (_nodeId === 'END') return _endCoord;
+    // function getCoord(_nodeId) {
+    //     if (_nodeId === 'START') return _startCoord;
+    //     if (_nodeId === 'END') return _endCoord;
 
-        const [routeId, idx] = _nodeId.split('-');
+    //     const [routeId, idx] = _nodeId.split('-');
+    //     const route = _routes.find(r => r.routeFile.routeName === routeId);
+    //     return route?.truncatedPath?.[parseInt(idx)];
+    // }    
+
+    function getCoord(_nodeId) {        
+        if (_nodeId === 'START') return { coord: _startCoord };
+        if (_nodeId === 'END') return { coord: _endCoord };       
+
+        const [routeId, idxStr] = _nodeId.split('-');
+        const idx = parseInt(idxStr);
         const route = _routes.find(r => r.routeFile.routeName === routeId);
-        return route?.truncatedPath?.[parseInt(idx)];
-    }
 
-    for(const leg of _merged) {
-        const coords = leg.nodes.map(getCoord).filter(Boolean);
+        if (!route) {
+            console.warn(`No route found for ${routeId}`);
+            return null;
+        }
+
+        if (!route.fullPath || !route.fullPath[idx]) {
+            console.warn(`Invalid fullPath index ${idx} for ${routeId}`);
+            return null;
+        }
+
+        if(!route || !route.fullPath || !route.mapping) return null;
+
+        const fullIdx = route.mapping[idx];
+        const coord = route.fullPath[fullIdx];
+
+        if(!coord) return null;
+
+        return {
+            coord: coord,
+            index: fullIdx,
+            route: route
+        }
+    }    
+
+    for(const leg of _merged) {        
+        const coords = leg.nodes.map(getCoord).map(n => n?.coord).filter(Boolean);                
 
         if(coords.length < 2) continue;
 
@@ -296,7 +328,25 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
                 colorIdx2++;
             }
 
-            const layer = L.polyline(coords, {
+            const segmentCoords = [];
+            for (let i = 0; i < leg.nodes.length - 1; i++) {
+                const fr = getCoord(leg.nodes[i]);
+                const to = getCoord(leg.nodes[i+1]);
+
+                if(!fr || !to || !fr.route || !to.route) continue;
+
+                const full = fr.route.fullPath;
+                const frIdx = fr.index;
+                const toIdx = to.index;
+
+                if(frIdx < toIdx) {
+                    segmentCoords.push(...full.slice(frIdx, toIdx + 1));
+                } else {
+                    segmentCoords.push(...full.slice(toIdx, frIdx + 1).reverse());
+                }
+            }            
+
+            const layer = L.polyline(segmentCoords, {
                 color: routeColorMap[leg.routeId],
                 weight: 8,
                 className: 'jeepney-route'
@@ -327,7 +377,7 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
  * @param {*} _map Leaflet map instance
  * @param {*} _transferPoints Transfer points
  */
-function visualizeTransferPoints(_map, _transferPoints) {
+function debugVisualizeTransferPoints(_map, _transferPoints) {
     _transferPoints.forEach(t => {
         const coords = [
             [t.from.coord[0], t.from.coord[1]],
@@ -363,4 +413,36 @@ function visualizeTransferPoints(_map, _transferPoints) {
             fillOpacity: 0.9
         }).addTo(_map).bindTooltip('Get On', { permanent: false, direction: 'top' });
     });
+}
+
+/**
+ * Draws a point each for a point in the truncatedPath and a point in fullPath, then draws a line in between
+ * @param {*} _map Leaflet map instance
+ * @param {*} _loadedRoute Loaded route to get data from
+ */
+function debugVisualizeTruncatedToFullMapping(_map, _loadedRoute) {
+    for (let i = 0; i < _loadedRoute.truncatedPath.length; i++) {
+        const tPath = _loadedRoute.truncatedPath[i];
+        const fIdx = _loadedRoute.mapping[i];
+
+        L.circleMarker(_loadedRoute.fullPath[fIdx], {
+            radius: 10,
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 1
+        }).addTo(_map);
+
+        L.circleMarker(tPath, {
+            radius: 15,
+            color: 'green',
+            fillColor: 'green',
+            fillOpacity: 0.5
+        }).addTo(_map);
+
+        L.polyline([_loadedRoute.fullPath[fIdx], tPath], {
+            color: 'yellow',
+            weight: 2,
+            dashArray: '4,4'
+        }).addTo(_map);
+    }
 }
