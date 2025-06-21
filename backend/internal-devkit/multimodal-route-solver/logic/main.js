@@ -1,4 +1,34 @@
 $(document).ready(function () {
+    async function multirouteCalculation() {
+        //Clear previous polylines
+        previewPathsPolyLines = clearPathPolylines(map, previewPathsPolyLines);
+
+        //Find best path using Dijkstra's (USE A* in the future)
+        const { coordinates, path } = await findBestPath(
+            [markerPositions.startPos.lat, markerPositions.startPos.lng],
+            [markerPositions.endPos.lat, markerPositions.endPos.lng],
+            routeGraph,
+            transferPoints,
+            loadedRoutes
+        );
+
+        //Merge all waypoints of one jeepney ride
+        const mergedLegs = mergePathLegs(path);
+
+        // await visualizeCalculatedPath(map, path, loadedRoutes,
+        //     [markerPositions.startPos.lat, markerPositions.startPos.lng],
+        //     [markerPositions.endPos.lat, markerPositions.endPos.lng]
+        // );
+
+        //Visualize merged paths
+        await visualizeCalculatedMergedPath(map, mergedLegs, loadedRoutes,
+            [markerPositions.startPos.lat, markerPositions.startPos.lng],
+            [markerPositions.endPos.lat, markerPositions.endPos.lng]
+        );
+
+        // console.log(path);
+    }
+
     let loadedRoutes = [];
 
     let routeGraph = {};
@@ -39,9 +69,8 @@ $(document).ready(function () {
                         const shortPath = calculateTruncatedPath(fullPath, TRUNCATION_SEPARATION);                        
 
                         //Maps truncated paths to their full conterpart
-                        const MAPPING_SEPARATION = 10; //METERS
-                        const mapping = calculateTruncatedFullMapping(shortPath, fullPath, MAPPING_SEPARATION);
-                        console.log(mapping);
+                        const MAPPING_SEPARATION = 1; //METERS
+                        const mapping = calculateTruncatedFullMapping(shortPath, fullPath, MAPPING_SEPARATION);                        
 
                         //Visualize the full path                    
                         let { polyLine, color } = visualizePath(map, fullPath);
@@ -90,32 +119,6 @@ $(document).ready(function () {
 
     //On button click: Do multiroute calculation
     $('#btn-calc').click(async function (e) {
-        //Clear previous polylines
-        previewPathsPolyLines = clearPathPolylines(map, previewPathsPolyLines);
-
-        //Find best path using Dijkstra's (USE A* in the future)
-        const { coordinates, path } = await findBestPath(
-            [markerPositions.startPos.lat, markerPositions.startPos.lng],
-            [markerPositions.endPos.lat, markerPositions.endPos.lng],
-            routeGraph,
-            transferPoints,
-            loadedRoutes
-        );
-
-        //Merge all waypoints of one jeepney ride
-        const mergedLegs = mergePathLegs(path);
-
-        // await visualizeCalculatedPath(map, path, loadedRoutes,
-        //     [markerPositions.startPos.lat, markerPositions.startPos.lng],
-        //     [markerPositions.endPos.lat, markerPositions.endPos.lng]
-        // );
-
-        //Visualize merged paths
-        await visualizeCalculatedMergedPath(map, mergedLegs, loadedRoutes,
-            [markerPositions.startPos.lat, markerPositions.startPos.lng],
-            [markerPositions.endPos.lat, markerPositions.endPos.lng]
-        );
-
-        // console.log(path);
+        await multirouteCalculation();
     });
 });

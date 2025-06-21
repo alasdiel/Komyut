@@ -58,29 +58,30 @@ function calculateTruncatedPath(_fullPath, _interval) {
  * @returns mapping
  */
 function calculateTruncatedFullMapping(_tPath, _fPath, _separation) {
-    const mapping = [];
+    // const mapping = [];
 
-    for (let i = 0; i < _tPath.length; i++) {
-        const tCoord = _tPath[i];
-        let minDist = Infinity;
-        let closestIdx = -1;
+    // for (let i = 0; i < _tPath.length; i++) {
+    //     const tCoord = _tPath[i];
+    //     let minDist = Infinity;
+    //     let closestIdx = -1;
 
-        for (let j = 0; j < _fPath.length; j++) {
-            const fCoord = _fPath[j];
+    //     for (let j = 0; j < _fPath.length; j++) {
+    //         const fCoord = _fPath[j];
             
-            const dist = geolib.getDistance(
-                { longitude: tCoord[0], latitude: tCoord[1] },
-                { longitude: fCoord[0], latitude: fCoord[1] },
-            );
+    //         const dist = geolib.getDistance(
+    //             { longitude: tCoord[0], latitude: tCoord[1] },
+    //             { longitude: fCoord[0], latitude: fCoord[1] },
+    //         );
 
-            if(dist < minDist) {
-                minDist = dist;
-                closestIdx = j;
-            }
-        }
+    //         if(dist < minDist) {
+    //             minDist = dist;
+    //             closestIdx = j;
+    //         }
+    //     }
 
-        mapping.push(closestIdx);
-    }
-
-    return mapping;
+    //     mapping.push(closestIdx);
+    // }
+    return _tPath.map(t => {
+        return _fPath.findIndex(f => f[0] === t[0] && f[1] === t[1]);
+    });
 }

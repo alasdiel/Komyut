@@ -9,6 +9,9 @@ function initializeLeaflet() {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
 
+    map.createPane('debug_0');
+    map.getPane('debug_0').style.zIndex = 60;
+
     return map;
 }
 
@@ -240,6 +243,7 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
  * @param {*} _endCoord End coordinate
  */
 async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord, _endCoord) {
+    console.log(_routes);
     pathPolylines = clearPathPolylines(_map, pathPolylines);
 
     // function getCoord(_nodeId) {
@@ -258,16 +262,6 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
         const [routeId, idxStr] = _nodeId.split('-');
         const idx = parseInt(idxStr);
         const route = _routes.find(r => r.routeFile.routeName === routeId);
-
-        if (!route) {
-            console.warn(`No route found for ${routeId}`);
-            return null;
-        }
-
-        if (!route.fullPath || !route.fullPath[idx]) {
-            console.warn(`Invalid fullPath index ${idx} for ${routeId}`);
-            return null;
-        }
 
         if(!route || !route.fullPath || !route.mapping) return null;
 
@@ -329,27 +323,35 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
             }
 
             const segmentCoords = [];
+
             for (let i = 0; i < leg.nodes.length - 1; i++) {
-                const fr = getCoord(leg.nodes[i]);
-                const to = getCoord(leg.nodes[i+1]);
+                const from = getCoord(leg.nodes[i]);
+                const to = getCoord(leg.nodes[i + 1]);
 
-                if(!fr || !to || !fr.route || !to.route) continue;
+                if (!from || !to || !from.route || !to.route) continue;
 
-                const full = fr.route.fullPath;
-                const frIdx = fr.index;
+                const fullPath = from.route.fullPath;
+                const fromIdx = from.index;
                 const toIdx = to.index;
 
-                if(frIdx < toIdx) {
-                    segmentCoords.push(...full.slice(frIdx, toIdx + 1));
+                if (from.route !== to.route) continue; // skip if not same route
+
+                if (fromIdx === toIdx) {
+                    segmentCoords.push(fullPath[fromIdx]);
                 } else {
-                    segmentCoords.push(...full.slice(toIdx, frIdx + 1).reverse());
+                    const step = fromIdx < toIdx ? 1 : -1;
+                    for (let j = fromIdx; j !== toIdx + step; j += step) {
+                        if (fullPath[j]) segmentCoords.push(fullPath[j]);
+                    }
                 }
-            }            
+            }
+            console.log(segmentCoords);
 
             const layer = L.polyline(segmentCoords, {
                 color: routeColorMap[leg.routeId],
-                weight: 8,
-                className: 'jeepney-route'
+                weight: 4,
+                className: 'jeepney-route',
+                fillOpacity: 0.1
             }).addTo(_map);
 
             layer.bindTooltip(`Jeepney Route: ${leg.routeId}`, {
@@ -361,10 +363,9 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
 
             layer.arrowheads({
                 frequency: '200px',                
-                size: '20px',
+                size: '15px',
                 color: routeColorMap[leg.routeId],
-                fill: true,
-                offsets: { start: '15px' }
+                fill: true,                
             });
 
             pathPolylines.push(layer);
