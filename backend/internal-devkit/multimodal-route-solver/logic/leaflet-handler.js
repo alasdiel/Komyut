@@ -147,41 +147,47 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
     pathPolylines = clearPathPolylines(_map, pathPolylines);
 
     function getCoord(_nodeId) {
-        if (_nodeId === 'START') return _startCoord;
-        if (_nodeId === 'END') return _endCoord;
+        if (_nodeId === 'START') return { coord: _startCoord };
+        if (_nodeId === 'END') return { coord: _endCoord };
 
-        const [routeId, idx] = _nodeId.split('-');
+        const [routeId, idxStr] = _nodeId.split('-');
+        const idx = parseInt(idxStr);
         const route = _routes.find(r => r.routeFile.routeName === routeId);
-        return route?.truncatedPath?.[parseInt(idx)];
+
+        if (!route || !route.fullPath || !route.mapping) return null;
+
+        const fullIdx = route.mapping[idx];
+        const coord = route.fullPath[fullIdx];
+
+        if (!coord) return null;
+
+        return {
+            coord,
+            index: fullIdx,
+            route
+        };
     }
 
     for (let i = 0; i < _path.length - 1; i++) {
-        const fr = _path[i];
-        const to = _path[i + 1];
+        const fromNode = _path[i];
+        const toNode = _path[i + 1];
 
-        const fromCoord = getCoord(fr);
-        const toCoord = getCoord(to);
+        const from = getCoord(fromNode);
+        const to = getCoord(toNode);
 
-        if (!fromCoord || !toCoord) {
-            console.warn(`Missing coordinate for segment ${fr} ${to}`);
+        if (!from || !to) {
+            console.warn(`Missing coordinates for segment ${fromNode} to ${toNode}`);
             continue;
         }
 
-        const segmentCoords = [
-            [fromCoord[0], fromCoord[1]],
-            [toCoord[0], toCoord[1]]
-        ];
-
-        const isStartOrEndWalk = fr === 'START' || to === 'END';
-        const [frRouteId] = fr.split('-');
-        const [toRouteId] = to.split('-');        
-
+        const isStartOrEndWalk = fromNode === 'START' || toNode === 'END';
+        const [frRouteId] = fromNode.split('-');
+        const [toRouteId] = toNode.split('-');
         const isTransferWalk = (frRouteId !== toRouteId) && !isStartOrEndWalk;
 
         if (isStartOrEndWalk || isTransferWalk) {
-            const walkingPath = await getWalkingPath(fromCoord, toCoord);
+            const walkingPath = await getWalkingPath(from.coord, to.coord);
 
-            // Yellow dashed line
             const layer = L.polyline(walkingPath, {
                 color: 'yellow',
                 weight: 4,
@@ -189,44 +195,73 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
             }).bindTooltip(`Walk`).addTo(_map);
             pathPolylines.push(layer);
 
-            // Add markers for transfer walks
             if (isTransferWalk) {
-                // Get off (fromCoord) - red
-                const getOffMarker = L.circleMarker(fromCoord, {
+                const getOffMarker = L.circleMarker(from.coord, {
                     radius: 6,
                     color: 'red',
                     fillColor: 'red',
                     fillOpacity: 1
-                }).bindTooltip(`Get off ${frRouteId}`, { direction: "top", permanent: false }).addTo(_map);
+                }).bindTooltip(`Get off ${frRouteId}`, { direction: "top" }).addTo(_map);
                 pathPolylines.push(getOffMarker);
 
-                // Get on (toCoord) - green
-                const getOnMarker = L.circleMarker(toCoord, {
+                const getOnMarker = L.circleMarker(to.coord, {
                     radius: 6,
                     color: 'lime',
                     fillColor: 'lime',
                     fillOpacity: 1
-                }).bindTooltip(`Get on ${toRouteId}`, { direction: "top", permanent: false }).addTo(_map);
+                }).bindTooltip(`Get on ${toRouteId}`, { direction: "top" }).addTo(_map);
                 pathPolylines.push(getOnMarker);
             }
-
         } else {
             // Jeepney segment
+            const route = from.route;
+            if (route !== to.route) continue; // Skip if they don't belong to the same route
+
             if (!routeColorMap[frRouteId]) {
                 routeColorMap[frRouteId] = colorPool[colorIdx2 % colorPool.length];
                 colorIdx2++;
             }
 
+            const fullPath = route.fullPath;
+            const fromIdx = from.index;
+            const toIdx = to.index;
+
+            const segmentCoords = [];
+            const step = fromIdx < toIdx ? 1 : -1;
+
+            for (let j = fromIdx; j !== toIdx + step; j += step) {
+                // if (j === fromIdx) {
+                //     console.log(`→ Segment ${i}: ${fromNode} (${fromIdx}) to ${toNode} (${toIdx})`);
+                //     console.log('   Step:', step);
+                //     console.log('   Full path length:', fullPath.length);
+                // }
+
+                if (fullPath[j]) {
+                    // console.log(`   Adding point [${fullPath[j][0]}, ${fullPath[j][1]}] at index ${j}`);
+                    segmentCoords.push(fullPath[j]);
+                } else {
+                    console.warn(`   ⚠️ Skipping invalid index ${j} in fullPath`);
+                }
+            }
+
             const layer = L.polyline(segmentCoords, {
                 color: routeColorMap[frRouteId],
-                weight: 5
+                weight: 4,
+                className: 'jeepney-route'
             }).addTo(_map);
 
-            layer.bindTooltip(`Jeepney Route: ${frRouteId}`, {
+            layer.bindTooltip(`Jeepney Route: ${frRouteId} (${fromIdx} → ${toIdx})`, {
                 permanent: false,
                 direction: 'center',
                 offset: [0, -4],
                 className: 'jeep-tooltip'
+            });
+
+            layer.arrowheads({
+                frequency: '200px',
+                size: '15px',
+                color: routeColorMap[frRouteId],
+                fill: true
             });
 
             pathPolylines.push(layer);
@@ -242,18 +277,8 @@ async function visualizeCalculatedPath(_map, _path, _routes, _startCoord, _endCo
  * @param {*} _startCoord Start coordinate
  * @param {*} _endCoord End coordinate
  */
-async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord, _endCoord) {
-    console.log(_routes);
+async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord, _endCoord) {    
     pathPolylines = clearPathPolylines(_map, pathPolylines);
-
-    // function getCoord(_nodeId) {
-    //     if (_nodeId === 'START') return _startCoord;
-    //     if (_nodeId === 'END') return _endCoord;
-
-    //     const [routeId, idx] = _nodeId.split('-');
-    //     const route = _routes.find(r => r.routeFile.routeName === routeId);
-    //     return route?.truncatedPath?.[parseInt(idx)];
-    // }    
 
     function getCoord(_nodeId) {        
         if (_nodeId === 'START') return { coord: _startCoord };
@@ -334,6 +359,11 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
                 const fromIdx = from.index;
                 const toIdx = to.index;
 
+                // console.log(`→ Segment ${i}: from ${leg.nodes[i]} to ${leg.nodes[i + 1]}`);
+                // console.log('   from.index:', from?.index, 'to.index:', to?.index);
+                // console.log('   slicing:', Math.min(fromIdx, toIdx), '-', Math.max(fromIdx, toIdx));
+                // console.log('   full length:', fullPath.length);
+
                 if (from.route !== to.route) continue; // skip if not same route
 
                 if (fromIdx === toIdx) {
@@ -341,11 +371,12 @@ async function visualizeCalculatedMergedPath(_map, _merged, _routes, _startCoord
                 } else {
                     const step = fromIdx < toIdx ? 1 : -1;
                     for (let j = fromIdx; j !== toIdx + step; j += step) {
-                        if (fullPath[j]) segmentCoords.push(fullPath[j]);
+                        if (fullPath[j]) {
+                            segmentCoords.push(fullPath[j]);                        
+                        }
                     }
                 }
-            }
-            console.log(segmentCoords);
+            }            
 
             const layer = L.polyline(segmentCoords, {
                 color: routeColorMap[leg.routeId],

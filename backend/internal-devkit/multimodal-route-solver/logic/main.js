@@ -20,7 +20,7 @@ $(document).ready(function () {
         //     [markerPositions.endPos.lat, markerPositions.endPos.lng]
         // );
 
-        //Visualize merged paths
+        // Visualize merged paths
         await visualizeCalculatedMergedPath(map, mergedLegs, loadedRoutes,
             [markerPositions.startPos.lat, markerPositions.startPos.lng],
             [markerPositions.endPos.lat, markerPositions.endPos.lng]
@@ -65,7 +65,7 @@ $(document).ready(function () {
                         }
 
                         //Create a shorter list of coordinates as path, reducing coords to reduce calculations
-                        const TRUNCATION_SEPARATION = 100; //METERS
+                        const TRUNCATION_SEPARATION = 300; //METERS
                         const shortPath = calculateTruncatedPath(fullPath, TRUNCATION_SEPARATION);                        
 
                         //Maps truncated paths to their full conterpart
