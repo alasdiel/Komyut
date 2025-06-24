@@ -5,20 +5,17 @@
   "bin": "dist/cli.js",
   "scripts": {
     "build": "tsc && copyfiles -u 2 src/editor-gui/**/* dist/editor-gui",
-    "pkg": "npm run build && pkg . --targets node18-win-x64 --output ./bin/routebuilder.exe",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "pkg": "npm run build && pkg . --targets node18-win-x64 --output ./bin/routebuilder.exe"
   },
   "author": "Anthony James Moran",
   "license": "ISC",
   "dependencies": {
-    "@types/express": "^5.0.3",
-    "@types/node": "^24.0.3",
     "commander": "^14.0.0",
     "express": "^5.1.0",
+    "geolib": "^3.3.4",
     "open": "^8.4.2",
     "pkg": "^5.8.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "rbush": "^2.0.2"
   },
   "pkg": {
     "assets": [
@@ -30,6 +27,12 @@
     "outputPath": "./bin"
   },
   "devDependencies": {
-    "copyfiles": "^2.4.1"
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.3",
+    "@types/rbush": "^4.0.0",
+    "copyfiles": "^2.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   }
 }

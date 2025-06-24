@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { showEditor } from "./editor";
-import { saveRouteFile, readRouteFile } from "./functions";
 
+import { editRouteFile, newRouteFile, compileAll } from "./functions";
 
 const program = new Command();
 
@@ -19,30 +19,33 @@ program
     .requiredOption("-i, --id <string>", "Route ID")
     .requiredOption("-o, --output <string>", "Output path")
     .action(async (opt) => {
-
-        //Show editor
-        //Once editor closes, get waypoints and fullPath        
-        const editorData = await showEditor(opt.name, opt.id);
-        
-        //Save to routefile
-        saveRouteFile(opt.name, opt.id, editorData, opt.output);
+        newRouteFile(opt.name, opt.id, opt.output);
     });
 
 program
     .command('edit')
     .description("Edites an existing route")    
-    .requiredOption("-i, --input <string>", "Input file")    
+    .requiredOption("-i, --input <string>", "Input/Output file, only serves as input when output path is entered")
+    .option("-o, --output <string>", "Output file")
     .action(async (opt) => {
-        //Load existing file
-        const routeObject = await readRouteFile(opt.input);
+        editRouteFile(opt.input, opt.output, 'output' in opt);
+    });
 
-        //Show editor, push existing routeData
-        //Once editor closes, get waypoints and fullPath        
-        const editorData = await showEditor(routeObject.routeName, routeObject.routeId, routeObject.waypoints);
-        
-        //Save to routefile
-        saveRouteFile(routeObject.routeName, routeObject.routeId, editorData, opt.input);
+program
+    .command('compile')
+    .description("Compiles routes from the input directory and creates a directory for output")
+    .requiredOption("-i, --input <string>", "Directory with .route files")
+    .requiredOption("-o, --output <string>", "Output directory to put build files")
+    .option('--interval <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
+    .option('--mappingRadius <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
+    .option('--transferRadius <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)
+    .option('--spatialTolerance <meters>', "Spacial search tolerance", (val) => parseInt(val, 10), 700)
+    .option('--continueReward <meters>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
+    .option('--transferPenalty <meters>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
+    .action(async (opt) => {
+        compileAll(opt.input, opt.output, opt.interval, opt.mappingRadius, opt.transferRadius, opt.spatialTolerance, opt.continueReward, opt.transferPenalty);
     });
 
 //Start CLI program
+// console.log('argv:', process.argv);
 program.parse(process.argv);

@@ -2,8 +2,6 @@ import express from "express";
 import path from "path";
 import open from "open";
 
-import { getAssetPath } from './helper';
-
 //Starts a psuedo-webserver to show an editor
 export function showEditor(routeName: String, routeId: String, existingWaypoints?: any) : Promise<{waypoints: any, path: any}> {
     return new Promise((resolve) => {

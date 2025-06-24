@@ -50,6 +50,8 @@ function buildTransferPoints(_routes) {
                         { latitude: other.coord[0], longitude: other.coord[1] },
                     );
 
+                    console.log(dist);
+
                     if (dist <= TRANSFER_RADIUS) {
                         transfers.push({
                             from: {

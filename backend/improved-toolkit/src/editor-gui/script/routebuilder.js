@@ -56,13 +56,16 @@ function createEndMarker(map, lat, lng) {
 
 function createIntermediateMarker(map, lat, lng, insertIndex = null) {
     const marker = createMarker(map, lat, lng, intermediateIcon, async () => {
+        const { lat, lng } = marker.getLatLng();
+        marker.setTooltipContent(`WPT #${shortLatLngHash(lat, lng)}`);
         await visualizeOSRMGeometry(map);
     }, async () => {
         const index = intermediateMarkers.indexOf(marker);
         if (index !== -1) intermediateMarkers.splice(index, 1);
-        map.removeLayer(marker);
+        map.removeLayer(marker);        
         await visualizeOSRMGeometry(map);
     });
+    marker.bindTooltip(`WPT #${shortLatLngHash(lat, lng)}`);
     if (insertIndex !== null) {
         intermediateMarkers.splice(insertIndex, 0, marker);
     } else {
@@ -138,7 +141,18 @@ async function visualizeOSRMGeometry(map) {
         visualizeOSRMGeometry(map);
     });
 
-    updateList();
+    updateList(map);
+}
+
+function shortLatLngHash(lat, lng) {
+    const str = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0; // convert to 32bit int
+    }
+    // Convert to base36 and slice
+    return Math.abs(hash).toString(36).slice(0, 6).toUpperCase();
 }
 
 //Calculate the final path
@@ -158,15 +172,44 @@ async function calculatePathForSaving() {
 }
 
 //Change the table display once data is added
-function updateList() {
+function updateList(map) {
     const tbody = $('#wpt-table tbody').empty();
     let count = 0;
 
-    if (startMarker) tbody.append(`<tr><td>START</td><td>${startMarker._latlng.lat}</td><td>${startMarker._latlng.lng}</td></tr>`);
-    intermediateMarkers.forEach(marker => {
-        tbody.append(`<tr><td>WPT #${count++}</td><td>${marker._latlng.lat}</td><td>${marker._latlng.lng}</td></tr>`);
+    if (startMarker) tbody.append(`<tr><td>START</td><td>${startMarker._latlng.lat}</td><td>${startMarker._latlng.lng}</td><td></td></tr>`);
+    intermediateMarkers.forEach((marker, index) => {
+        const hash = shortLatLngHash(marker._latlng.lat, marker._latlng.lng);
+        const row = $(`
+            <tr>
+                <td>WPT #${hash}</td>
+                <td>${marker._latlng.lat.toFixed(6)}</td>
+                <td>${marker._latlng.lng.toFixed(6)}</td>
+                <td>
+                    <div class="btn btn-move-up" data-index="${index}">↑</div>
+                    <div class="btn btn-move-down" data-index="${index}">↓</div>
+                </td>
+            </tr>`);
+        tbody.append(row);
+        if (index === 0) row.find('.btn-move-up').attr('disabled', true);
+        if (index === intermediateMarkers.length - 1) row.find('.btn-move-down').attr('disabled', true);
     });
-    if (endMarker) tbody.append(`<tr><td>END</td><td>${endMarker._latlng.lat}</td><td>${endMarker._latlng.lng}</td></tr>`);
+    if (endMarker) tbody.append(`<tr><td>END</td><td>${endMarker._latlng.lat}</td><td>${endMarker._latlng.lng}</td><td></td></tr>`);
+
+    $('#wpt-table .btn-move-up').on('click', function () {
+        const idx = parseInt($(this).data('index'));
+        if (idx > 0) {
+            [intermediateMarkers[idx - 1], intermediateMarkers[idx]] = [intermediateMarkers[idx], intermediateMarkers[idx - 1]];
+            visualizeOSRMGeometry(map);
+        }
+    });
+
+    $('#wpt-table .btn-move-down').on('click', function () {
+        const idx = parseInt($(this).data('index'));
+        if (idx < intermediateMarkers.length - 1) {
+            [intermediateMarkers[idx + 1], intermediateMarkers[idx]] = [intermediateMarkers[idx], intermediateMarkers[idx + 1]];
+            visualizeOSRMGeometry(map);
+        }
+    });
 }
 
 // ===========================
@@ -246,7 +289,9 @@ $(document).ready(function () {
                 //Visualize immediately
                 $('#calc-loop').prop(`checked`, true);
                 loop = true;
-                visualizeOSRMGeometry(map);                
+                visualizeOSRMGeometry(map);  
+                
+                updateList(map);
             }
         }
     });
