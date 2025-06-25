@@ -36,14 +36,14 @@ program
     .description("Compiles routes from the input directory and creates a directory for output")
     .requiredOption("-i, --input <string>", "Directory with .route files")
     .requiredOption("-o, --output <string>", "Output directory to put build files")
-    .option('--interval <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
+    .option('--truncationInterval <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
     .option('--mappingRadius <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
     .option('--transferRadius <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)
     .option('--spatialTolerance <meters>', "Spacial search tolerance", (val) => parseInt(val, 10), 700)
-    .option('--continueReward <meters>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
-    .option('--transferPenalty <meters>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
+    .option('--continueReward <score>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
+    .option('--transferPenalty <score>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
     .action(async (opt) => {
-        compileAll(opt.input, opt.output, opt.interval, opt.mappingRadius, opt.transferRadius, opt.spatialTolerance, opt.continueReward, opt.transferPenalty);
+        compileAll(opt.input, opt.output, opt.truncationInterval, opt.mappingRadius, opt.transferRadius, opt.spatialTolerance, opt.continueReward, opt.transferPenalty);
     });
 
 //Start CLI program

@@ -289,6 +289,6 @@ export function writeManifestFile(outputDirectory: string, routeFiles: RouteFile
         manifestFile.includedFiles.push(r.routeId);
     });
 
-    const filePath = path.join(outputDirectory, 'manifest.json');
+    const filePath = path.join(outputDirectory, 'routepack.json');
     fs.writeFileSync(filePath, JSON.stringify(manifestFile, null, '\t'));
 }
