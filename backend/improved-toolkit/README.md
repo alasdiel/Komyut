@@ -34,6 +34,7 @@ routebuilder compile -i <input-directory> -o <output-directory>
 ```
 - `-i`, `--input` the compiler will read all the `.route` files in the input directory
 - `-o`, `--output` sets the destination directory to save the Route Pack and its associated caches
+
 **OPTIONAL PARAMETERS:**
 - `--truncationInterval <interval>` specifies the minimum separation (in meters) between waypoints when creating a route's truncated path. (Default value is 300m)
 - `--mappingRadius <radius>` specifies maximum proximity (in meters) to allow a point in the full path to be associated with a point in the truncated path. (Default value is 1m)
