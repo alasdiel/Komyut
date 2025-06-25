@@ -1,16 +1,16 @@
 import { promises as fs } from 'fs';
-import * as path from 'path';
+import * as nPath from 'path';
 
-export async function saveRouteFile(routeName: String, routeId: String, editorData: {waypoints: any, path: any}, outputPath: string) {
+export async function saveRouteFile(routeName: String, routeId: String, waypoints: any, path: any, outputPath: string) {
     const jsonObject = {
         routeId: routeId,
         routeName: routeName,
-        waypoints: editorData.waypoints,
-        path: editorData.path
+        waypoints: waypoints,
+        path: path
     };
 
-    const outputFilePath = path.resolve(outputPath)
-    const outputFileDir = path.dirname(outputPath);
+    const outputFilePath = nPath.resolve(outputPath)
+    const outputFileDir = nPath.dirname(outputPath);
 
     await fs.mkdir(outputFileDir, {recursive: true});
 
@@ -20,7 +20,7 @@ export async function saveRouteFile(routeName: String, routeId: String, editorDa
 
 export async function readRouteFile(filePath: string) {
     try {
-        const fileContents = await fs.readFile(path.resolve(filePath), 'utf-8');
+        const fileContents = await fs.readFile(nPath.resolve(filePath), 'utf-8');
         const jsonData = JSON.parse(fileContents);
         return jsonData;
     } catch(err) {

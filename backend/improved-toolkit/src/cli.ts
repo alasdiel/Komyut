@@ -48,4 +48,5 @@ program
 
 //Start CLI program
 // console.log('argv:', process.argv);
+console.log(`[IMPORTANT!]: routebuilder requires a local OSRM instance running at port 5000!`);
 program.parse(process.argv);

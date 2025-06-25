@@ -240,7 +240,6 @@ $(document).ready(function () {
     //On route done editing
     $('#btn-done').click(async e => {
         e.preventDefault();
-        const path = await calculatePathForSaving();
         const waypoints = [
             [startMarker._latlng.lng, startMarker._latlng.lat],
             ...intermediateMarkers.map(m => [m._latlng.lng, m._latlng.lat]),
@@ -251,7 +250,7 @@ $(document).ready(function () {
             type: "POST",
             url: "/update-wp",
             contentType: "application/json",
-            data: JSON.stringify({ waypoints, path }),
+            data: JSON.stringify(waypoints),
             dataType: 'json',
             success: res => {
                 if (res.success) alert("You can close this window now!");
