@@ -45,4 +45,9 @@ program
     });
 
 //Start CLI program
+<<<<<<< HEAD
+=======
+// console.log('argv:', process.argv);
+console.log(`[IMPORTANT!]: routebuilder requires a local OSRM instance running at port 5000!`);
+>>>>>>> 414749f (refactor: moved path calculation to CLI instead of editor)
 program.parse(process.argv);

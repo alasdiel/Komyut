@@ -5,7 +5,7 @@ import open from "open";
 import { getAssetPath } from './helper';
 
 //Starts a psuedo-webserver to show an editor
-export function showEditor(routeName: String, routeId: String, existingWaypoints?: any) : Promise<{waypoints: any, path: any}> {
+export function showEditor(routeName: String, routeId: String, existingWaypoints?: any) : Promise<[number, number][]> {
     return new Promise((resolve) => {
         const app = express();
         const port = 3200;
@@ -39,14 +39,9 @@ export function showEditor(routeName: String, routeId: String, existingWaypoints
         app.post("/update-wp", (req: express.Request, res: express.Response) => {
             res.json({ success: true });
 
-            const result = {
-                waypoints: req.body.waypoints,
-                path: req.body.path
-            }
-
             server.close(() => {
                 console.log(`Editor closed.`);
-                resolve(result);
+                resolve(req.body as [number, number][]);
             });
         });
 
