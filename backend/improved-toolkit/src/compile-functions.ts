@@ -6,6 +6,7 @@ import RBush from 'rbush';
 
 import { haversine } from "./helpers";
 import * as gl from 'geolib';
+import * as msgp from '@msgpack/msgpack';
 
 export function readAllRouteFiles(inputDirectory: string) : RouteFile[] {
     try {
@@ -233,7 +234,7 @@ export function writeTruncatedPathsToFiles(outputDirectory: string, truncatedPat
 
         truncatedPaths.forEach(t => {
             const filePath = path.join(targetDir, `${t.routeId}.truncated`);
-            fs.writeFileSync(filePath, JSON.stringify(t, null, '\t'));
+            fs.writeFileSync(filePath, msgp.encode(t));
         })
     } catch (err) {
         console.error('Error:', err);
@@ -248,7 +249,7 @@ export function writePathMappingsToFiles(outputDirectory: string, mappings: { ro
 
         mappings.forEach(m => {
             const filePath = path.join(targetDir, `${m.routeId}.mapping`);
-            fs.writeFileSync(filePath, JSON.stringify(m, null, '\t'));
+            fs.writeFileSync(filePath, msgp.encode(m));
         })
     } catch (err) {
         console.error('Error:', err);
@@ -259,7 +260,7 @@ export function writePathMappingsToFiles(outputDirectory: string, mappings: { ro
 export function writeTransferPointsToFile(outputDirectory: string, transferPoints: TransferPoint[]) {
     try {
         const filePath = path.join(outputDirectory, `transferPoints.cache`);
-        fs.writeFileSync(filePath, JSON.stringify(transferPoints, null, '\t'));
+        fs.writeFileSync(filePath, msgp.encode(transferPoints));
     } catch(err) {
         console.error(`Error:`, err);        
     }
@@ -267,8 +268,8 @@ export function writeTransferPointsToFile(outputDirectory: string, transferPoint
 
 export function writeRouteGraphToFile(outputDirectory: string, routeGraph: RouteGraph) {
     try {
-        const filePath = path.join(outputDirectory, `routeGraph.cache`);
-        fs.writeFileSync(filePath, JSON.stringify(routeGraph, null, '\t'));
+        const filePath = path.join(outputDirectory, `routeGraph.cache`);        
+        fs.writeFileSync(filePath, msgp.encode(routeGraph));
     } catch(err) {
         console.error(`Error:`, err);
     }
@@ -279,14 +280,14 @@ export function writeManifestFile(outputDirectory: string, routeFiles: RouteFile
         return Date.now().toString(36).toUpperCase();
     }
 
-    let manifestFile: { includedFiles: string[], buildID: string, dateCreated: string } = {
-        includedFiles: [],
+    let manifestFile: { includedRoutes: string[], buildID: string, dateBuilt: string } = {
+        includedRoutes: [],
         buildID: generateBuildId(),
-        dateCreated: new Date().toISOString()
+        dateBuilt: new Date().toISOString()
     };
 
     routeFiles.forEach(r => {
-        manifestFile.includedFiles.push(r.routeId);
+        manifestFile.includedRoutes.push(r.routeId);
     });
 
     const filePath = path.join(outputDirectory, 'routepack.json');
