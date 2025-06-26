@@ -71,7 +71,7 @@ function calculateTruncatedFullMapping(_tPath, _fPath, _separation) {
                 minDist = d;
                 bestIdx = i;
             }
-            if (d < 1) break; // short-circuit if very close
+            if (d < _separation) break; // short-circuit if very close
         }
 
         return bestIdx;
