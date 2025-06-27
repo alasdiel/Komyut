@@ -1,7 +1,7 @@
 import path from "path";
 import * as fs from "fs";
 
-import { RouteFile, IndexedPoint, TransferPoint, RouteGraph } from "./types";
+import { RouteFile, IndexedPoint, TransferPoint, RouteGraph } from "../../shared/types";
 import RBush from 'rbush';
 
 import { haversine } from "./helpers";
