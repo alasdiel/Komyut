@@ -1,9 +1,11 @@
 import express from "express";
 import path from "path";
-import open from "open";
+import { open } from 'openurl';
+import { getGuiAssetPath } from "./helpers";
+import * as fs from 'fs';
 
 //Starts a psuedo-webserver to show an editor
-export function showEditor(routeName: String, routeId: String, existingWaypoints?: any) : Promise<[number, number][]> {
+export function showEditor(routeName: String, routeId: String, existingWaypoints?: any): Promise<[number, number][]> {
     return new Promise((resolve) => {
         const app = express();
         const port = 3200;
@@ -29,7 +31,7 @@ export function showEditor(routeName: String, routeId: String, existingWaypoints
         });
 
         //Supply existing data if there is
-        app.get("/edit-data", (req: express.Request, res: express.Response) => {            
+        app.get("/edit-data", (req: express.Request, res: express.Response) => {
             res.json({ isEditing: existingWaypoints !== null, waypoints: existingWaypoints });
         });
 

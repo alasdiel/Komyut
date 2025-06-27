@@ -2,28 +2,18 @@
   "name": "improved-toolkit",
   "version": "1.0.0",
   "description": "**Komyut** provides a CLI-based toolkit for developers to design jeepney routes, generate Route Packs, and compile route caches — essential for powering Komyut’s backend routing engine.",
-  "scripts": {
-    "clean": "rm -rf dist bin",
-    "copy-editor-gui": "copyfiles -u 3 src/routebuilder/editor-gui/**/* dist/routebuilder/editor-gui",
-    "build-ts": "tsc && npm run copy-editor-gui",
-    "bundle:routebuilder": "npm run build-ts && pkg dist/routebuilder/index.js --output bin/routebuilder.exe --targets node18-win-x64",
-    "bundle:routecalc": "npm run build-ts && pkg dist/routecalc/index.js --output bin/routecalc.exe --targets node18-win-x64"
+  "scripts": {    
+    "prepare-assets:routebuilder": "copyfiles -u 3 src/routebuilder/editor-gui/**/* dist/routebuilder/editor-gui",
+    "prepare-assets:routecalc": "copyfiles -u 3 src/routecalc/visualizer/**/* dist/routecalc/visualizer",
+    
+    "build-ts": "tsc",
+
+    "bundle:routebuilder": "npm run build-ts && npm run prepare-assets:routebuilder && pkg dist/routebuilder/index.js --config pkg-routebuilder.json --output ./bin/routebuilder.exe",
+    "bundle:routecalc": "npm run build-ts && npm run prepare-assets:routecalc && pkg dist/routecalc/index.js --config pkg-routecalc.json --output ./bin/routecalc.exe"
   },
   "bin": {
     "routebuilder": "dist/routebuilder/index.js",
     "routecalc": "dist/routecalc/index.js"
-  },
-  "pkg": {
-    "assets": [
-      "dist/routebuilder/editor-gui/**/*"
-    ],
-    "scripts": [
-      "dist/**/*"
-    ],
-    "targets": [
-      "node18-win-x64"
-    ],
-    "outputPath": "bin"
   },
   "keywords": [],
   "author": "",
@@ -39,9 +29,10 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.4",
+    "@types/openurl": "^1.0.3",
     "@types/rbush": "^4.0.0",
     "copyfiles": "^2.4.1",
     "pkg": "^5.8.1",
     "typescript": "^5.8.3"
-  }
+  }  
 }

@@ -61,8 +61,8 @@ npm install
 ### 3. Build the CLI
 This will compile the CLI and package it for use:
 ```bash
-npm run pkg
+npm run bundle:routebuilder
 ```
-The built CLI binary will be available in the `dist/` folder.
+The built CLI binary will be available in the `bin/` folder.
 **The following binaries will be compiled:**
 - `routebuilder.exe` - Windows executable for 64-bit systems.

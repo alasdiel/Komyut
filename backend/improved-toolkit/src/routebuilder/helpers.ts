@@ -1,16 +1,13 @@
 import path from 'path';
 import fs from 'fs';
 
-export function getAssetPath(relativePath: string): string {
+export function getGuiAssetPath(file: string): string {
     const isPkg = typeof (process as any).pkg !== 'undefined';
-    const basePath = isPkg ? path.dirname(process.execPath) : __dirname;
-    const fullPath = path.join(basePath, relativePath);
+    const basePath = isPkg
+        ? path.join(path.dirname(process.execPath), 'editor-gui') // packaged .exe
+        : path.join(__dirname, 'editor-gui'); // dev
 
-    if (!fs.existsSync(fullPath)) {
-        console.warn(`Asset not found: ${fullPath}`);
-    }
-
-    return fullPath;
+    return path.join(basePath, file);
 }
 
 export function haversine(lat1: number, long1: number, lat2: number, long2: number) {
@@ -29,7 +26,7 @@ export function haversine(lat1: number, long1: number, lat2: number, long2: numb
     const dLong = long2Rad - long1Rad;
 
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const d = R * c;
     return d * 1000;
 }
