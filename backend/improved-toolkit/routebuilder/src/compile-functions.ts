@@ -1,7 +1,11 @@
 import path from "path";
 import * as fs from "fs";
 
+<<<<<<< HEAD:backend/improved-toolkit/src/compile-functions.ts
 import { RouteFile, IndexedPoint, TransferPoint, RouteGraph, CompileParameters, RoutePack } from "../shared/types";
+=======
+import { RouteFile, IndexedPoint, TransferPoint, RouteGraph } from "../../shared/types";
+>>>>>>> f4b0086 (chore: migrate routebuilder to its own directory):backend/improved-toolkit/routebuilder/src/compile-functions.ts
 import RBush from 'rbush';
 
 import { haversine } from "./helpers";
