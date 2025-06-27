@@ -1,3 +1,3 @@
-backend/improved-toolkit/routebuilder/bin
-backend/improved-toolkit/routebuilder/node_modules
-backend/improved-toolkit/routebuilder/dist
+bin/
+node_modules/
+dist/
