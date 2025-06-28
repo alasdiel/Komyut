@@ -32,6 +32,10 @@ export interface RoutePack {
     }[]
 }
 
+export interface CompileParameters {
+    TRUNCATION_INTERVAL: number, MAPPING_RADIUS: number, TRANSFER_RADIUS: number, SPATIAL_TOLERANCE: number, CONTINUE_REWARD: number, TRANSFER_PENALTY: number
+}
+
 export type MergedPathLegResponse = {
     type: 'walk' | 'jeepney';
     routeId: string | null;

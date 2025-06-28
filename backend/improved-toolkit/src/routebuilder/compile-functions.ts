@@ -1,7 +1,7 @@
 import path from "path";
 import * as fs from "fs";
 
-import { RouteFile, IndexedPoint, TransferPoint, RouteGraph } from "../shared/types";
+import { RouteFile, IndexedPoint, TransferPoint, RouteGraph, CompileParameters } from "../shared/types";
 import RBush from 'rbush';
 
 import { haversine } from "./helpers";
@@ -275,15 +275,16 @@ export function writeRouteGraphToFile(outputDirectory: string, routeGraph: Route
     }
 }
 
-export function writeManifestFile(outputDirectory: string, routeFiles: RouteFile[]) {
+export function writeManifestFile(outputDirectory: string, routeFiles: RouteFile[], compileParameters: CompileParameters) {
     function generateBuildId(): string {
         return Date.now().toString(36).toUpperCase();
     }
 
-    let manifestFile: { includedRoutes: string[], buildID: string, dateBuilt: string } = {
+    let manifestFile: { includedRoutes: string[], buildID: string, dateBuilt: string, compileParameters: CompileParameters } = {
         includedRoutes: [],
         buildID: generateBuildId(),
-        dateBuilt: new Date().toISOString()
+        dateBuilt: new Date().toISOString(),
+        compileParameters: compileParameters
     };
 
     routeFiles.forEach(r => {

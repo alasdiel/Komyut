@@ -1,6 +1,6 @@
 import * as gl from 'geolib';
 
-import TinyQueue from 'tinyqueue';
+const TinyQueue = require('tinyqueue');
 import { RoutePack, RouteGraph } from "../shared/types";
 
 export async function findBestPath(startCoord: [number, number], endCoord: [number, number], routePack: RoutePack) {
@@ -33,7 +33,7 @@ export async function findBestPath(startCoord: [number, number], endCoord: [numb
         });
     }
 
-    const { path, prev } = dijkstra(clonedGraph, startNode, endNode);
+    const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);
 
     const coordinates = path.map(nodeId => {
         if (nodeId === startNode) return startCoord;
@@ -88,12 +88,12 @@ async function getWalkingGeometry(from: [number, number], to: [number, number]) 
     };
 }
 
-function dijkstra(routeGraph: RouteGraph, startNode: string, endNode: string) {
+async function dijkstra(routeGraph: RouteGraph, startNode: string, endNode: string) {
     const dist: { [id: string]: number } = {};
     const prev: { [id: string]: string } = {};
     const visited = new Set();
-
-    const queue = new TinyQueue([{ node: startNode, cost: 0 }], (a, b) => a.cost - b.cost);
+    
+    const queue = new TinyQueue([{ node: startNode, cost: 0 }], (a: any, b: any) => a.cost - b.cost);
 
     for (const node in routeGraph) dist[node] = Infinity;
     dist[startNode] = 0;

@@ -38,14 +38,21 @@ program
     .description("Compiles a Route Pack from routes in the input directory and creates a directory for output")
     .requiredOption("-i, --input <string>", "Directory with .route files")
     .requiredOption("-o, --output <string>", "Output directory to put build files")
-    .option('--truncationInterval <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
-    .option('--mappingRadius <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
-    .option('--transferRadius <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)
-    .option('--spatialTolerance <meters>', "Spacial search tolerance", (val) => parseInt(val, 10), 700)
-    .option('--continueReward <score>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
-    .option('--transferPenalty <score>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
+    .option('--TRUNCATION_INTERVAL <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
+    .option('--MAPPING_RADIUS <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
+    .option('--TRANSFER_RADIUS <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)
+    .option('--SPATIAL_TOLERANCE <meters>', "Spacial search tolerance", (val) => parseInt(val, 10), 700)
+    .option('--CONTINUE_REWARD <score>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
+    .option('--TRANSFER_PENALTY <score>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
     .action(async (opt) => {
-        compileAll(opt.input, opt.output, opt.truncationInterval, opt.mappingRadius, opt.transferRadius, opt.spatialTolerance, opt.continueReward, opt.transferPenalty);
+        compileAll(opt.input, opt.output, {
+            MAPPING_RADIUS: opt.MAPPING_RADIUS,
+            TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
+            SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
+            CONTINUE_REWARD: opt.CONTINUE_REWARD,
+            TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
+            TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
+        });
     });
 
 //Start CLI program
