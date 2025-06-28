@@ -4,6 +4,6 @@
   ],
   "output": "./bin/routecalc.exe",
   "assets": [
-    "dist/routecalc/visualizer/**/*"
+    "dist/routecalc/map/**/*"
   ]
 }

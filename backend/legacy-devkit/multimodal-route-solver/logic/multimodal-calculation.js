@@ -50,8 +50,6 @@ function buildTransferPoints(_routes) {
                         { latitude: other.coord[0], longitude: other.coord[1] },
                     );
 
-                    console.log(dist);
-
                     if (dist <= TRANSFER_RADIUS) {
                         transfers.push({
                             from: {
@@ -231,6 +229,7 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
 
     const startNode = 'START';
     const endNode = 'END';
+    console.log(_graph);
     const clonedGraph = structuredClone(_graph);
     const WALK_TO_SAMPLE_LIMIT = 5;
 
@@ -269,7 +268,7 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
 
         return route.truncatedPath[parseInt(index)];
     });
-
+    
     return { coordinates, path };
 }
 
@@ -280,6 +279,8 @@ async function findBestPath(_startCoord, _endCoord, _graph, _transferPoints, _ro
  */
 function mergePathLegs(_path) {
     const legs = [];
+
+    console.log(_path);
 
     let currentLeg = null;
 
@@ -309,5 +310,6 @@ function mergePathLegs(_path) {
     }
 
     if(currentLeg) legs.push(currentLeg);
+    console.log(legs);
     return legs;
 }

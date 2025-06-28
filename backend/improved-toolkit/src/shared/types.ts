@@ -19,4 +19,21 @@ export interface TransferPoint {
     distance: number
 }
 
-export type RouteGraph = Record<string, { to: string; cost: number }[]>;
+export type RouteGraph = Record<string, { to: string; cost: number; geometry?: [number, number][] }[]>;
+
+export interface RoutePack {
+    routeGraph: RouteGraph,
+    transferPoints: TransferPoint[],
+    routes: {
+        routeId: string,
+        routeFile: RouteFile,
+        mappings: number[],
+        truncatedPath: [number, number][]
+    }[]
+}
+
+export type MergedPathLegResponse = {
+    type: 'walk' | 'jeepney';
+    routeId: string | null;
+    coordinates: [number, number][];
+}

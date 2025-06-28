@@ -12,8 +12,9 @@ $(document).ready(function () {
             loadedRoutes
         );
 
-        //Merge all waypoints of one jeepney ride
+        //Merge all waypoints of one jeepney ride        
         const mergedLegs = mergePathLegs(path);
+        console.log(mergedLegs);
 
         // await visualizeCalculatedPath(map, path, loadedRoutes,
         //     [markerPositions.startPos.lat, markerPositions.startPos.lng],

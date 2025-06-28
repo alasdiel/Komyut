@@ -61,7 +61,7 @@ export async function newRouteFile(routeName: string, routeId: string, outputFil
 export async function editRouteFile(inputFilePath: string, outputFilePath: string, hasOutputPath ? : boolean) {
     //Load existing file
     console.log(`Reading existing file from ${inputFilePath}`);
-    const routeObject = await readRouteFile(inputFilePath, );
+    const routeObject = await readRouteFile(inputFilePath);
 
     //Show editor, push existing routeData
     //Once editor closes, get waypoints and fullPath        

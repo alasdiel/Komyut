@@ -9,7 +9,7 @@ const program = new Command();
 program
     .name("routebuilder")
     .description("CLI to create routes")
-    .version('0.9.0');
+    .version('1.0.0');
 
 //Create new file
 program
@@ -22,6 +22,7 @@ program
         newRouteFile(opt.name, opt.id, opt.output);
     });
 
+//Edit existing file
 program
     .command('edit')
     .description("Edites an existing route")    
@@ -31,9 +32,10 @@ program
         editRouteFile(opt.input, opt.output, 'output' in opt);
     });
 
+//Compile a route pack
 program
     .command('compile')
-    .description("Compiles routes from the input directory and creates a directory for output")
+    .description("Compiles a Route Pack from routes in the input directory and creates a directory for output")
     .requiredOption("-i, --input <string>", "Directory with .route files")
     .requiredOption("-o, --output <string>", "Output directory to put build files")
     .option('--truncationInterval <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
