@@ -7,7 +7,8 @@ export function astar(
     routeGraph: RouteGraph,
     startCoord: [number, number],
     endCoord: [number, number],
-    nodeLookup: Record<string, [number, number]>
+    nodeLookup: Record<string, [number, number]>,
+    heuristicFactor: number
 ) {
     function findNearestNode(coord: [number, number], nodeLookup: Record<string, [number, number]>): string {
         let minDist = Infinity;
@@ -35,17 +36,17 @@ export function astar(
     for (const node in routeGraph) gScore[node] = Infinity;
     gScore[startNode] = 0;
 
-    const heuristic = (nodeId: string) => {        
+    const heuristic = (nodeId: string, heuristicFactor: number) => {        
         const from = nodeLookup[nodeId];
         const to = nodeLookup[endNode];
         return from && to ? gl.getDistance(
             { latitude: from[0], longitude: from[1] },
             { latitude: to[0], longitude: to[1] }
-        ) : Infinity;
+        ) * heuristicFactor : Infinity;
     };
 
     const queue = new TinyQueue(
-        [{ node: startNode, g: 0, f: heuristic(startNode) }],
+        [{ node: startNode, g: 0, f: heuristic(startNode, heuristicFactor) }],
         (a: any, b: any) => a.f - b.f
     );
 
@@ -65,7 +66,7 @@ export function astar(
                 gScore[edge.to] = tentativeG;
                 prev[edge.to] = node;
 
-                const fScore = tentativeG + heuristic(edge.to);
+                const fScore = tentativeG + heuristic(edge.to, heuristicFactor);
                 queue.push({ node: edge.to, g: tentativeG, f: fScore });
             }
         }
@@ -84,12 +85,13 @@ export function astar(
     }
 
     if (path[0] !== startNode) {
-        console.warn("No path found from start to end.");
+        console.warn("[ASTAR] No path found from start to end.");
         return { path: [], prev };
     }
+    
+    path[0] = 'START';
+    path[path.length - 1] = 'END';
 
-    console.log(`ASTAR done!`);
-    console.log(path);
     return { path, prev };
 }
 

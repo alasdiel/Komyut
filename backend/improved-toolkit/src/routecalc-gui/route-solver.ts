@@ -33,9 +33,9 @@ export async function findBestPath(startCoord: [number, number], endCoord: [numb
         });
     }
 
-    // const nodeLookup = buildNodeLookup(routePack);
-    // const { path, prev } = astar(routePack.routeGraph, startCoord, endCoord, nodeLookup);
-    const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);
+    const nodeLookup = buildNodeLookup(routePack);
+    const { path, prev } = astar(routePack.routeGraph, startCoord, endCoord, nodeLookup, 0.5);
+    // const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);    
 
     const coordinates = path.map(nodeId => {
         if (nodeId === startNode) return startCoord;

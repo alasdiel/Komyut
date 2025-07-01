@@ -169,6 +169,27 @@ function drawRouteLegs(map, legs) {
 
         if (leg.type === 'jeepney') {
             console.log(`Jeepney: ${leg.routeId} with color: ${style.color}`);
+
+            const getOnMarker = L.circleMarker(leg.coordinates[0], {
+                radius: 7,
+                color: 'lime',
+                fillColor: 'lime',
+                fillOpacity: 1,
+                weight: 1
+            }).addTo(map);
+            getOnMarker.bindTooltip(`Get on ${leg.routeId}`, { permanent: false, direction: 'right' });
+            pathPolylines.push(getOnMarker);
+
+            const getOffMarker = L.circleMarker(leg.coordinates[leg.coordinates.length - 1], {
+                radius: 5,
+                color: 'red',
+                fillColor: 'red',
+                fillOpacity: 1,
+                weight: 1
+            }).addTo(map);
+            getOffMarker.bindTooltip(`Get off ${leg.routeId}`, { permanent: false, direction: 'right' });
+            pathPolylines.push(getOffMarker);
+
             polyline.bindTooltip(`Jeep: ${leg.routeId}`, { sticky: true });
         }
 
