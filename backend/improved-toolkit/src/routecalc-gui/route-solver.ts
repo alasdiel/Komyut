@@ -1,7 +1,7 @@
 import * as gl from 'geolib';
 
-const TinyQueue = require('tinyqueue');
 import { RoutePack, RouteGraph } from "../shared/types";
+import { astar, dijkstra } from "./pathfinding";
 
 export async function findBestPath(startCoord: [number, number], endCoord: [number, number], routePack: RoutePack) {
     const startNode = 'START';
@@ -33,6 +33,8 @@ export async function findBestPath(startCoord: [number, number], endCoord: [numb
         });
     }
 
+    // const nodeLookup = buildNodeLookup(routePack);
+    // const { path, prev } = astar(routePack.routeGraph, startCoord, endCoord, nodeLookup);
     const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);
 
     const coordinates = path.map(nodeId => {
@@ -88,49 +90,6 @@ async function getWalkingGeometry(from: [number, number], to: [number, number]) 
     };
 }
 
-async function dijkstra(routeGraph: RouteGraph, startNode: string, endNode: string) {
-    const dist: { [id: string]: number } = {};
-    const prev: { [id: string]: string } = {};
-    const visited = new Set();
-    
-    const queue = new TinyQueue([{ node: startNode, cost: 0 }], (a: any, b: any) => a.cost - b.cost);
-
-    for (const node in routeGraph) dist[node] = Infinity;
-    dist[startNode] = 0;
-
-    while (queue.length) {
-        const popped = queue.pop();
-        if (!popped) continue;
-
-        const { node, cost } = popped;
-
-        if (visited.has(node)) continue;
-        visited.add(node);
-
-        for (const edge of routeGraph[node] || []) {
-            const alt = dist[node] + edge.cost;
-
-            if (alt < dist[edge.to]) {
-                dist[edge.to] = alt;
-                prev[edge.to] = node;
-                queue.push({
-                    node: edge.to,
-                    cost: alt
-                });
-            }
-        }
-    }
-
-    const path = [];
-    let u = endNode;
-    while (u) {
-        path.unshift(u);
-        u = prev[u];
-    }
-
-    return { path, prev };
-}
-
 export function mergePathLegs(path: string[]) {
     const legs = [];
 
@@ -169,11 +128,8 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
     const lookup: Record<string, [number, number]> = {};
 
     for (const route of routePack.routes) {
-        const routeId = route.routeId;
-        const coords = route.truncatedPath;
-
-        coords.forEach((coord, index) => {
-            const nodeId = `${routeId}-${index}`;
+        route.truncatedPath.forEach((coord, index) => {
+            const nodeId = `${route.routeId}-${index}`;
             lookup[nodeId] = coord;
         });
     }

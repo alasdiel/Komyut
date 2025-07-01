@@ -35,7 +35,6 @@ export function showMap(routePackData: RoutePack) {
 
         const mergedLegs = mergePathLegs(path);
 
-        const nodeLookup = buildNodeLookup(routePackData);
         const legs = await transformLegsForFrontend(mergedLegs, routePackData, startCoord, endCoord);
 
         res.json({
