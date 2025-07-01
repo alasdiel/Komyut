@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as readline from "readline";
 
 import { readRouteFile, saveRouteFile } from "./io-functions";
-import { calculateTruncatedPath, generateRouteGraph, generateTransferPoints, generateTruncatedFullMapping, readAllRouteFiles, writeAllRouteFiles, writeManifestFile, writePathMappingsToFiles, writeRouteGraphToFile, writeTransferPointsToFile, writeTruncatedPathsToFiles } from "./compile-functions";
+import { calculateTruncatedPath, generateNodeLookup, generateRouteGraph, generateTransferPoints, generateTruncatedFullMapping, readAllRouteFiles, writeAllRouteFiles, writeCacheFile, writeManifestFile, writePathMappingsToFiles, writeTruncatedPathsToFiles } from "./compile-functions";
 import { showEditor } from "./editor";
 import { getPathFromWaypoints } from "./pathgen";
 import { Readline } from "readline/promises";
@@ -114,6 +114,10 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     const routeGraph = generateRouteGraph(truncatedPaths, transferPoints, compileParameters.CONTINUE_REWARD, compileParameters.TRANSFER_PENALTY);
     console.log(`RouteGraph done generating`);
 
+    console.log(`Generating Node Lookup Table`);
+    const nodeLookup = generateNodeLookup(truncatedPaths);
+    console.log(`Node Lookup Table done generating`);
+
     console.log(`Writing to ${outputDirectory}/original`);
     writeAllRouteFiles(outputDirectory, routeFiles);
 
@@ -124,10 +128,13 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     writePathMappingsToFiles(outputDirectory, pathMappings);
 
     console.log(`Writing the TransferPoints file.`);
-    writeTransferPointsToFile(outputDirectory, transferPoints);    
+    writeCacheFile(outputDirectory, 'transferPoints.cache', transferPoints);    
 
     console.log(`Writing RouteGraph to file`);
-    writeRouteGraphToFile(outputDirectory, routeGraph);
+    writeCacheFile(outputDirectory, 'routeGraph.cache', routeGraph);
+
+    console.log(`Writing NodeLookUp to file`);
+    writeCacheFile(outputDirectory, 'nodeLookup.cache', nodeLookup);
 
     writeManifestFile(outputDirectory, routeFiles, compileParameters);
     console.log(`Done compiling!`);

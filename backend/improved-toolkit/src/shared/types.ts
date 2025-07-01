@@ -24,6 +24,7 @@ export type RouteGraph = Record<string, { to: string; cost: number; geometry?: [
 export interface RoutePack {
     routeGraph: RouteGraph,
     transferPoints: TransferPoint[],
+    nodeLookup: Record<string, [number, number]>,
     routes: {
         routeId: string,
         routeFile: RouteFile,

@@ -1,7 +1,7 @@
 import path from "path";
 import * as fs from "fs";
 
-import { RouteFile, IndexedPoint, TransferPoint, RouteGraph, CompileParameters } from "../shared/types";
+import { RouteFile, IndexedPoint, TransferPoint, RouteGraph, CompileParameters, RoutePack } from "../shared/types";
 import RBush from 'rbush';
 
 import { haversine } from "./helpers";
@@ -167,6 +167,19 @@ export function generateTransferPoints(truncatedPaths: { routeId: string, trunca
     return transfers;
 }
 
+export function generateNodeLookup(truncatedPaths: { routeId: string, truncatedPath: [number, number][]}[]): Record<string, [number, number]> {
+    const lookup: Record<string, [number, number]> = {};
+
+    for (const tp of truncatedPaths) {
+        tp.truncatedPath.forEach((coord, index) => {
+            const nodeId = `${tp.routeId}-${index}`;
+            lookup[nodeId] = coord;
+        });
+    }
+
+    return lookup;
+}
+
 export function generateRouteGraph(truncatedPaths: { routeId: string, truncatedPath: [number, number][]}[], transferPoints: TransferPoint[], CONTINUE_REWARD: number, TRANSFER_PENALTY: number) : RouteGraph {
     function findClosestNodeIndex(truncatedPath: [number, number][], coord: [number, number]) {
         let closest = 0; let minDist = Infinity;
@@ -257,21 +270,12 @@ export function writePathMappingsToFiles(outputDirectory: string, mappings: { ro
     }
 }
 
-export function writeTransferPointsToFile(outputDirectory: string, transferPoints: TransferPoint[]) {
+export function writeCacheFile(outputDirectory: string, fileName: string, data: Object) {
     try {
-        const filePath = path.join(outputDirectory, `transferPoints.cache`);
-        fs.writeFileSync(filePath, msgp.encode(transferPoints));
+        const filePath = path.join(outputDirectory, fileName);
+        fs.writeFileSync(filePath, msgp.encode(data));
     } catch(err) {
-        console.error(`Error:`, err);        
-    }
-}
-
-export function writeRouteGraphToFile(outputDirectory: string, routeGraph: RouteGraph) {
-    try {
-        const filePath = path.join(outputDirectory, `routeGraph.cache`);        
-        fs.writeFileSync(filePath, msgp.encode(routeGraph));
-    } catch(err) {
-        console.error(`Error:`, err);
+        console.error(`Error writing to ${fileName}:`, err);        
     }
 }
 

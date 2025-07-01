@@ -13,10 +13,11 @@ export function loadRoutePack(inputDirectory: string): RoutePack | null {
         return null;
     }
 
-    const manifestData = loadManifest(inputDirectory);
-    const transferPoints = loadTransferPoints(inputDirectory);
-    const routeGraph = loadRouteGraph(inputDirectory);
-    if (routeGraph && transferPoints && manifestData) {
+    const manifestData = loadManifest(inputDirectory);    
+    const transferPoints = loadCacheFile<TransferPoint[]>(inputDirectory, 'transferPoints.cache');
+    const routeGraph = loadCacheFile<RouteGraph>(inputDirectory, 'routeGraph.cache');
+    const nodeLookup = loadCacheFile<Record<string, [number, number]>>(inputDirectory, 'nodeLookup.cache');
+    if (routeGraph && transferPoints && manifestData && nodeLookup) {
         const routes: {
             routeId: string,
             routeFile: RouteFile,
@@ -38,7 +39,8 @@ export function loadRoutePack(inputDirectory: string): RoutePack | null {
         return {
             transferPoints: transferPoints,
             routeGraph: routeGraph,
-            routes: routes
+            routes: routes,
+            nodeLookup: nodeLookup
         };
     } else {
         console.error(`There was an error trying to load the RoutePack!`);
@@ -46,26 +48,13 @@ export function loadRoutePack(inputDirectory: string): RoutePack | null {
     }
 }
 
-function loadTransferPoints(filePath: string): TransferPoint[] {
+function loadCacheFile<T>(filePath: string, fileName: string): T | null {
     try {
-        const tpPath = path.join(path.dirname(filePath), 'transferPoints.cache');
-        const buffer = fs.readFileSync(tpPath);
-
-        return msgp.decode(buffer) as TransferPoint[];
-    } catch (err) {
-        console.error(`Error reading transferPoints.cache file:`, err);
-        return [];
-    }
-}
-
-function loadRouteGraph(filePath: string): RouteGraph | null {
-    try {
-        const rgPath = path.join(path.dirname(filePath), 'routeGraph.cache');
-        const buffer = fs.readFileSync(rgPath);
-
-        return msgp.decode(buffer) as RouteGraph;
-    } catch (err) {
-        console.error(`Error reading routeGraph.cache file:`, err);
+        const fullPath = path.join(path.dirname(filePath), fileName);
+        const buffer = fs.readFileSync(fullPath);
+        return msgp.decode(buffer) as T;
+    } catch(err) {
+        console.error(`Error reading ${fileName} file:`, err);
         return null;
     }
 }
