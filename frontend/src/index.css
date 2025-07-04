@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
+@import url('https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,300;1,300&display=swap');
 @custom-variant dark (&:is(.dark *));
-/* @config "../tailwind.config.js" */
+@config "../tailwind.config.js"
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
@@ -43,6 +43,8 @@
 }
 
 :root {
+
+
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);

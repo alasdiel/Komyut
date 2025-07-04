@@ -14,23 +14,30 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 border-2 border-b-black-200">
+    <nav className="bg-white shadow-md px-6 py-4 border-2 border-b-black-200 font-epilogue font-light">
       <div className="flex items-center justify-between">
         {/* Left: Title */}
-        <div className="text-5xl font-bold text-gray-900">
-          KOMYUT
+        {/* Title with logo */}
+        <div className="flex items-center gap-2">
+          <img
+            src="https://img.freepik.com/free-vector/butterfly-colorful-logo-template_361591-1587.jpg"
+            alt="Logo"
+            className="w-16 h-16 rounded-full"
+          ></img>
+          <div className="text-5xl text-gray-900">
+            KOMYUT
+          </div>
         </div>
-
         {/* Right: Hamburger (mobile) */}
         <button
           onClick={() => setOpen(!open)}
-          className="lg:hidden p-2 rounded hover:bg-gray-100"
+          className="xl:hidden p-2 rounded hover:bg-gray-100"
         >
           {open ? <XIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
         </button>
 
         {/* Middle & Right: Navigation links (desktop) */}
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden xl:flex items-center gap-6">
           <NavigationMenu>
             <NavigationMenuList className="flex gap-10">
               <NavigationMenuItem>
@@ -59,14 +66,14 @@ export default function Navbar() {
 
 
         </div>
-          <Button className="bg-primary hidden lg:flex text-4xl px-15 py-10 rounded-full">
+          <Button className="bg-primary hidden xl:flex text-4xl px-17 py-8 rounded-full">
             Sign Up
           </Button>
       </div>
 
       {/* Mobile Menu */}
       {open && (
-        <div className="mt-4 flex flex-col gap-4 lg:hidden">
+        <div className="mt-4 flex flex-col gap-4 xl:hidden">
           <a className="text-lg text-gray-600 hover:text-black">
             About Us
           </a>
