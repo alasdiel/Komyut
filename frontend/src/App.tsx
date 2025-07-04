@@ -2,12 +2,32 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './index.css'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIndicator,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuViewport,
+} from "@/components/ui/navigation-menu"
 
 export default function App() {
   return (
-    <div className="bg-bg text-gray-dark min-h-screen flex flex-col">
+<div className="bg-bg text-gray-dark min-h-screen flex flex-col"> {/* main container */}
+  <NavigationMenu>
+    <NavigationMenuList>
+      <NavigationMenuItem>
+        <NavigationMenuTrigger>Item One</NavigationMenuTrigger>
+        <NavigationMenuContent>
+          <NavigationMenuLink>Link</NavigationMenuLink>
+        </NavigationMenuContent>
+      </NavigationMenuItem>
+    </NavigationMenuList>
+  </NavigationMenu>
 
-      {/* Hero Section */}
+  {/* Hero Section */}
       <section className="bg-gray-light p-6 rounded-xl m-4 flex flex-col items-start gap-4 shadow-sm">
         <p className="text-lg">Here is a caption.</p>
         <h1 className="text-3xl font-bold text-blue">
