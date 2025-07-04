@@ -24,7 +24,7 @@ export default function Navbar() {
             alt="Logo"
             className="w-16 h-16 rounded-full"
           ></img>
-          <div className="text-5xl text-gray-900">
+          <div className="text-5xl text-gray-900 font-sans">
             KOMYUT
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Navbar() {
 
 
         </div>
-          <Button className="bg-primary hidden xl:flex text-4xl px-17 py-8 rounded-full">
+          <Button className="bg-primary hidden xl:flex text-4xl px-17 py-8 rounded-full font-extrabold">
             Sign Up
           </Button>
       </div>
@@ -86,9 +86,11 @@ export default function Navbar() {
           <a className="text-lg text-gray-600 hover:text-black">
             Premium
           </a>
-          <Button className="bg-primary w-full text-lg rounded-full">
+          <div className="flex justify-center">
+          <Button className="bg-primary  text-xl py-6 w-full rounded-full font-extrabold">
             Sign Up
           </Button>
+          </div>
         </div>
       )}
     </nav>

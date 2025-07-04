@@ -1,12 +1,23 @@
+import React from "react";
 import Navbar from "./components/ui/navbar";
+import Footer from "./components/ui/footer";
 
 export default function App() {
   return (
-    <div>
-    <Navbar />
-      <main className="p-6">
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+
+      <main className="flex-grow p-6">
         <h2 className="text-2xl font-semibold">Hello, world!</h2>
       </main>
+
+      {/*TODO: Our Work Section*/}
+
+      {/*TODO: Features Section*/}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
+
