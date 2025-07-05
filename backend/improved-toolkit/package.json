@@ -1,0 +1,38 @@
+{
+  "name": "improved-toolkit",
+  "version": "1.0.0",
+  "description": "**Komyut** provides a CLI-based toolkit for developers to design jeepney routes, generate Route Packs, and compile route caches — essential for powering Komyut’s backend routing engine.",
+  "scripts": {
+    "prepare-assets:routebuilder": "copyfiles -u 3 src/routebuilder/editor-gui/**/* dist/routebuilder/editor-gui",
+    "prepare-assets:routecalc-gui": "copyfiles -u 3 src/routecalc-gui/map/**/* dist/routecalc-gui/map",
+    "build-ts": "tsc",
+    "bundle:routebuilder": "npm run build-ts && npm run prepare-assets:routebuilder && pkg dist/routebuilder/index.js --config pkg-routebuilder.json --output ./bin/routebuilder.exe",
+    "bundle:routecalc-gui": "npm run build-ts && npm run prepare-assets:routecalc-gui && pkg dist/routecalc-gui/index.js --config pkg-routecalc-gui.json --output ./bin/routecalc-gui.exe",
+    "bundle:all": "npm run bundle:routebuilder && npm run bundle:routecalc-gui"
+  },
+  "bin": {
+    "routebuilder": "dist/routebuilder/index.js",
+    "routecalc-gui": "dist/routecalc-gui/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@msgpack/msgpack": "^3.1.2",
+    "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "geolib": "^3.3.4",
+    "openurl": "^1.1.1",
+    "rbush": "^3.0.1",
+    "tinyqueue": "^1.2.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.4",
+    "@types/openurl": "^1.0.3",
+    "@types/rbush": "^4.0.0",
+    "copyfiles": "^2.4.1",
+    "pkg": "^5.8.1",
+    "typescript": "^5.8.3"
+  }
+}

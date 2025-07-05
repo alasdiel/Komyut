@@ -1,0 +1,9 @@
+{
+  "targets": [
+    "node18-win-x64"
+  ],
+  "output": "./bin/routebuilder.exe",
+  "assets": [
+    "dist/routebuilder/editor-gui/**/*"
+  ]
+}
