@@ -1,42 +1,12 @@
-<<<<<<< HEAD
-import { promises as fs } from 'fs';
-import * as path from 'path';
-
-export async function saveRouteFile(routeName: String, routeId: String, editorData: {waypoints: any, path: any}, outputPath: string) {
-    const jsonObject = {
-        routeId: routeId,
-        routeName: routeName,
-        waypoints: editorData.waypoints,
-        path: editorData.path
-    };
-
-    const outputFilePath = path.resolve(outputPath)
-    const outputFileDir = path.dirname(outputPath);
-
-    await fs.mkdir(outputFileDir, {recursive: true});
-
-    await fs.writeFile(outputFilePath, JSON.stringify(jsonObject, null, '\t'));
-    console.log(`RouteFile ${routeName} with ID ${routeId} saved to ${outputFilePath}`);
-}
-
-export async function readRouteFile(filePath: string) {
-    try {
-        const fileContents = await fs.readFile(path.resolve(filePath), 'utf-8');
-        const jsonData = JSON.parse(fileContents);
-        return jsonData;
-    } catch(err) {
-        console.error(`Failed to read or parse file ${filePath}!`, err);
-        throw err;
-    }
-=======
 import * as fs from "fs";
 import * as readline from "readline";
 
 import { readRouteFile, saveRouteFile } from "./io-functions";
-import { calculateTruncatedPath, generateRouteGraph, generateTransferPoints, generateTruncatedFullMapping, readAllRouteFiles, writeAllRouteFiles, writeManifestFile, writePathMappingsToFiles, writeRouteGraphToFile, writeTransferPointsToFile, writeTruncatedPathsToFiles } from "./compile-functions";
+import { calculateTruncatedPath, generateNodeLookup, generateRouteGraph, generateTransferPoints, generateTruncatedFullMapping, readAllRouteFiles, writeAllRouteFiles, writeCacheFile, writeManifestFile, writePathMappingsToFiles, writeTruncatedPathsToFiles } from "./compile-functions";
 import { showEditor } from "./editor";
 import { getPathFromWaypoints } from "./pathgen";
 import { Readline } from "readline/promises";
+import { CompileParameters } from "../shared/types";
 
 /**
  * Creates a new route file from scratch
@@ -92,7 +62,7 @@ export async function newRouteFile(routeName: string, routeId: string, outputFil
 export async function editRouteFile(inputFilePath: string, outputFilePath: string, hasOutputPath ? : boolean) {
     //Load existing file
     console.log(`Reading existing file from ${inputFilePath}`);
-    const routeObject = await readRouteFile(inputFilePath, );
+    const routeObject = await readRouteFile(inputFilePath);
 
     //Show editor, push existing routeData
     //Once editor closes, get waypoints and fullPath        
@@ -110,7 +80,7 @@ export async function editRouteFile(inputFilePath: string, outputFilePath: strin
     saveRouteFile(routeObject.routeName, routeObject.routeId, waypoints, path, hasOutputPath ? outputFilePath : inputFilePath);
 }
 
-export async function compileAll(inputDirectory: string, outputDirectory: string, truncationInterval: number, mappingRadius: number, TRANSFER_RADIUS: number, SPATIAL_TOLERANCE: number, CONTINUE_REWARD: number, TRANSFER_PENALTY: number) {
+export async function compileAll(inputDirectory: string, outputDirectory: string, compileParameters: CompileParameters) {
     if(!fs.existsSync(outputDirectory)) fs.mkdirSync(outputDirectory);
 
     //Read all route files
@@ -121,13 +91,13 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     routeFiles.forEach(r => {
         console.log(`Read RouteFile ID:${r.routeId}, generating truncatedPaths and mappings now.`);
 
-        const tPath = calculateTruncatedPath(r.path, truncationInterval)
+        const tPath = calculateTruncatedPath(r.path, compileParameters.TRUNCATION_INTERVAL)
         truncatedPaths.push({
             routeId: r.routeId,
             truncatedPath: tPath
         });
 
-        const mapping = generateTruncatedFullMapping(tPath, r.path, mappingRadius);
+        const mapping = generateTruncatedFullMapping(tPath, r.path, compileParameters.MAPPING_RADIUS);
         pathMappings.push({
             routeId: r.routeId,
             mapping: mapping
@@ -136,13 +106,17 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
 
     console.log(`Generating TransferPoints from ${
         truncatedPaths.reduce((sum, route) => {return sum + route.truncatedPath.length;}, 0)
-    } truncated points (tr=${TRANSFER_RADIUS}m, st=${SPATIAL_TOLERANCE}m)`);
-    const transferPoints = generateTransferPoints(truncatedPaths, TRANSFER_RADIUS, SPATIAL_TOLERANCE);    
+    } truncated points (tr=${compileParameters.TRANSFER_RADIUS}m, st=${compileParameters.SPATIAL_TOLERANCE}m)`);
+    const transferPoints = generateTransferPoints(truncatedPaths, compileParameters.TRANSFER_RADIUS, compileParameters.SPATIAL_TOLERANCE);    
     console.log(`Generated ${transferPoints.length} TransferPoints`);
 
     console.log(`Generating RouteGraph`);
-    const routeGraph = generateRouteGraph(truncatedPaths, transferPoints, CONTINUE_REWARD, TRANSFER_PENALTY);
+    const routeGraph = generateRouteGraph(truncatedPaths, transferPoints, compileParameters.CONTINUE_REWARD, compileParameters.TRANSFER_PENALTY);
     console.log(`RouteGraph done generating`);
+
+    console.log(`Generating Node Lookup Table`);
+    const nodeLookup = generateNodeLookup(truncatedPaths);
+    console.log(`Node Lookup Table done generating`);
 
     console.log(`Writing to ${outputDirectory}/original`);
     writeAllRouteFiles(outputDirectory, routeFiles);
@@ -154,12 +128,14 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     writePathMappingsToFiles(outputDirectory, pathMappings);
 
     console.log(`Writing the TransferPoints file.`);
-    writeTransferPointsToFile(outputDirectory, transferPoints);    
+    writeCacheFile(outputDirectory, 'transferPoints.cache', transferPoints);    
 
     console.log(`Writing RouteGraph to file`);
-    writeRouteGraphToFile(outputDirectory, routeGraph);
+    writeCacheFile(outputDirectory, 'routeGraph.cache', routeGraph);
 
-    writeManifestFile(outputDirectory, routeFiles);
+    console.log(`Writing NodeLookUp to file`);
+    writeCacheFile(outputDirectory, 'nodeLookup.cache', nodeLookup);
+
+    writeManifestFile(outputDirectory, routeFiles, compileParameters);
     console.log(`Done compiling!`);
->>>>>>> 414749f (refactor: moved path calculation to CLI instead of editor)
 }
