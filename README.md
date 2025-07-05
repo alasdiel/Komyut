@@ -14,7 +14,7 @@ Komyut aims to improve the Davao City commuting experience by implementing a rou
 To start working on Komyut, clone the repository:
 
 ```bash
-git clone https://github.com/your-org/komyut.git
+git clone https://github.com/alasdiel/komyut.git
 cd komyut
 ```
 ## 🔄 Workflow
