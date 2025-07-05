@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "esbuild": "rm -rf dist && node esbuild.config.mjs"
+    "esbuild": "rd /s /q dist 2> nul || exit 0 && node esbuild.config.mjs",
+    "esbuild:clean": "if exist dist rd /s /q dist",
+    "esbuild:run": "node esbuild.config.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.150",
     "esbuild": "^0.25.3",
     "typescript": "^5.8.3"
-  }
+  },
+  "main": "index.js",
+  "description": ""
 }

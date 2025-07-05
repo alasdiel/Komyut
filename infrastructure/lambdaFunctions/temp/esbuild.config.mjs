@@ -1,25 +1,18 @@
 import { build } from "esbuild";
-import path from "path";
 
 build({
-  packages: 'external',
   entryPoints: [
     "./src/login/login.ts",
     "./src/createUser/createUser.ts",
     "./src/helloWorld/helloWorld.ts",
     // add more as needed
   ],
-  entryNames: "[dir]/index",
-  outdir: path.join("./dist"),
+  entryNames: "[dir]/[name]",
+  outdir: "./dist",
   bundle: false,
   platform: "node",
-  target: "node18",
-  format: "cjs",
+  target: "node22",
   sourcemap: false,
   minify: false,
   logLevel: "info",
-  
-}).catch((err) => {
-  console.error("Build failed:", err);
-  process.exit(1);
-});
+}).catch(() => process.exit(1));

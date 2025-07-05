@@ -14,6 +14,9 @@ export class LambdaConstruct extends Construct {
   public loginFunction: lambda.Function;
   public createUserFunction: lambda.Function;
 
+  public helloWorldFunction: lambda.Function;
+  public helloWorldIntegration: integrations.HttpLambdaIntegration;
+
   public loginIntegration: integrations.HttpLambdaIntegration;
   public createUserIntegration: integrations.HttpLambdaIntegration;
 
@@ -28,6 +31,7 @@ export class LambdaConstruct extends Construct {
   private createLambdaFunctions(props: LambdaConstructProps) {
     this.loginFunction = this.createLambdaFunction("login", props);
     this.createUserFunction = this.createLambdaFunction("createUser", props);
+    this.helloWorldFunction = this.createLambdaFunction("helloWorld", props);
   }
 
   private createLambdaIntegrations(props: LambdaConstructProps) {
@@ -41,6 +45,11 @@ export class LambdaConstruct extends Construct {
       "createUser",
       this.createUserFunction,
     );
+    this.helloWorldIntegration = this.createLambdaIntegration( // <-- Added
+          props,
+          "helloWorld",
+          this.helloWorldFunction,
+        );
   }
 
   private assignPermissions(props: LambdaConstructProps) {
