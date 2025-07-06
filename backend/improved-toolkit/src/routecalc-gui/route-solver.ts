@@ -1,6 +1,6 @@
 import * as gl from 'geolib';
 
-import { RoutePack, RouteGraph } from "../shared/types";
+import { RoutePack, RouteGraph } from "../../../../shared/types";
 import { astar, dijkstra } from "./pathfinding";
 
 export async function findBestPath(startCoord: [number, number], endCoord: [number, number], routePack: RoutePack) {

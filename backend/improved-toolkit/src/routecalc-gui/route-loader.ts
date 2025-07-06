@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import path from "path";
-import { RoutePack, RouteGraph, TransferPoint, RouteFile } from "../shared/types";
+import { RoutePack, RouteGraph, TransferPoint, RouteFile } from "../../../../shared/types";
 
 import * as msgp from '@msgpack/msgpack';
 
@@ -91,8 +91,8 @@ function loadRouteData(inputDirectory: string, routeId: string) {
     function loadTruncatedPath(filePath: string): [number, number][] | null {
         try {
             const buffer = fs.readFileSync(filePath);
-
             const tPathData = msgp.decode(buffer) as { routeId: string, truncatedPath: [number, number][] };
+
             return tPathData.truncatedPath;
         } catch (err) {
             console.error(`Failed to load original truncated path data from ${filePath}`, err);
@@ -103,8 +103,8 @@ function loadRouteData(inputDirectory: string, routeId: string) {
     function loadMapping(filePath: string): number[] | null {
         try {
             const buffer = fs.readFileSync(filePath);
-
             const mappingData = msgp.decode(buffer) as { routeId: string, mapping: number[] };
+            
             return mappingData.mapping;
         } catch (err) {
             console.error(`Failed to load original truncated path data from ${filePath}`, err);

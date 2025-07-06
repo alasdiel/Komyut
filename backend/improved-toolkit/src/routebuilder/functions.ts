@@ -6,7 +6,7 @@ import { calculateTruncatedPath, generateNodeLookup, generateRouteGraph, generat
 import { showEditor } from "./editor";
 import { getPathFromWaypoints } from "./pathgen";
 import { Readline } from "readline/promises";
-import { CompileParameters } from "../shared/types";
+import { CompileParameters } from "../../../../shared/types";
 
 /**
  * Creates a new route file from scratch

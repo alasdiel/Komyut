@@ -9,3 +9,4 @@ cdk.out
 
 #Anthony's ignores
 .env
+cdk.context.json
