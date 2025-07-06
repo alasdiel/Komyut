@@ -8,7 +8,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/app',
-    element: <Map />, // Functioning app page
+    element: <Map />, // The actual usable app page
   },
   /*
     #TODO: remove in prod
