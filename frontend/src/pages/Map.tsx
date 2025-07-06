@@ -7,8 +7,7 @@ export default function Map() {
 
     
     <MapLayout>
-      <div className="p-6 text-xl font-bold">
-         This is the Map page content
+      <div id="map">
       </div>
     </MapLayout>
   )
