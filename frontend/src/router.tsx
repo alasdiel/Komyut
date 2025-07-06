@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from './App'
+import Map from './pages/Map'
 
 const router = createBrowserRouter([
   {
