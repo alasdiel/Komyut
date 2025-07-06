@@ -5,11 +5,13 @@ export default function MapLayout({ children }: { children: React.ReactNode }) {
   return (
     // #TODO: Style this
     <SidebarProvider>
-      <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
+      <div className="flex h-screen w-screen overflow-hidden">
+        <AppSidebar />
+        <main className="flex-1 h-full relative">
+          <SidebarTrigger />
+          {children}
+        </main>
+      </div>
     </SidebarProvider>
   )
 }
