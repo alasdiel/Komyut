@@ -27,6 +27,21 @@ export class KomyutCdkStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(120)
     });
 
+    const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
+      entry: path.join(__dirname, '../lambda/confirmSignup/confirmSignup.ts'),
+      runtime: lambda.Runtime.NODEJS_20_X,      
+    });
+
+    const fnSignin = new lambdaNJS.NodejsFunction(this, 'SigninFunction', {
+      entry: path.join(__dirname, '../lambda/signin/signin.ts'),
+      runtime: lambda.Runtime.NODEJS_20_X,      
+    });
+
+    const fnSignup = new lambdaNJS.NodejsFunction(this, 'SignupFunction', {
+      entry: path.join(__dirname, '../lambda/signup/signup.ts'),
+      runtime: lambda.Runtime.NODEJS_20_X,
+    });
+    
         // 🪣 S3 BUCKETS
     const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
       bucketName: 'komyut-routepack-bucket',
