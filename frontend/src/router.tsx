@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from './App'
 import Map from './pages/Map'
 import NotFoundPage from './pages/NotFoundPage'
+import Throbber from './pages/Throbber'
 
 const router = createBrowserRouter([
   {
@@ -16,7 +17,10 @@ const router = createBrowserRouter([
     path: '*',
     element: <NotFoundPage />,
   },
-
+  {
+    path: '/test-env',
+    element: <Throbber />,
+  },
   /*
     #TODO: remove in prod
     For future reference:
