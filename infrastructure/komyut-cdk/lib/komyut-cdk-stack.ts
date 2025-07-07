@@ -21,8 +21,8 @@ export class KomyutCdkStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,      
     });
 
-    const fnTestLoadManifest = new lambdaNJS.NodejsFunction(this, 'TestManifestFunction', {
-      entry: path.join(__dirname, '../lambda/findpath/test.ts'),
+    const fnTestLoadRoutePack = new lambdaNJS.NodejsFunction(this, 'TestLoadRoutePackFunction', {
+      entry: path.join(__dirname, '../lambda/findpath/test-routepack.ts'),
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(120)
     });
@@ -49,13 +49,13 @@ export class KomyutCdkStack extends cdk.Stack {
       autoDeleteObjects: true,
       publicReadAccess: false,
     });    
-    routePackBucket.grantRead(fnTestLoadManifest);
+    routePackBucket.grantRead(fnTestLoadRoutePack);
 
     // 🚦 APIGATEWAY DEFINITION
     const api = new apigw.RestApi(this, 'KomyutRestApi');
     api.root.addResource('hello-world')
       .addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
     api.root.addResource('test-manif')
-      .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadManifest));
+      .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadRoutePack));
   }
 }
