@@ -1,6 +1,8 @@
 import MapLayout from "@/components/layouts/MapLayout"
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer } from "react-leaflet"
+import { MapContainer, TileLayer, ZoomControl } from "react-leaflet"
+import SidebarToggleControl from "@/components/SidebarToggleControl"
+
 export default function Map() {
 
   return (
@@ -10,12 +12,14 @@ export default function Map() {
       center={[7.0647, 125.6088]} 
       zoom={13}
       className="h-full w-full"
+      zoomControl={false}
       >
           <TileLayer
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           
             />
+           <ZoomControl position="bottomright" />
       </MapContainer>
     </div>
     </MapLayout>

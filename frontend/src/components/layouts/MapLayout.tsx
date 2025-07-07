@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/MapSidebar"
+import SidebarToggleControl from "@/components/SidebarToggleControl" 
 
 export default function MapLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,8 +9,8 @@ export default function MapLayout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen w-screen overflow-hidden">
         <AppSidebar />
         <main className="flex-1 h-full relative">
-          <SidebarTrigger />
-          {children}
+        <SidebarToggleControl />
+        {children}
         </main>
       </div>
     </SidebarProvider>
