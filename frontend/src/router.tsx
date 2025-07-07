@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from './App'
 import Map from './pages/Map'
+import NotFoundPage from './pages/NotFoundPage'
 
 const router = createBrowserRouter([
   {
@@ -11,6 +12,11 @@ const router = createBrowserRouter([
     path: '/app',
     element: <Map />, // The actual usable app page
   },
+  {
+    path: '*',
+    element: <NotFoundPage />,
+  },
+
   /*
     #TODO: remove in prod
     For future reference:
