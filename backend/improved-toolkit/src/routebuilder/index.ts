@@ -38,6 +38,7 @@ program
     .description("Compiles a Route Pack from routes in the input directory and creates a directory for output")
     .requiredOption("-i, --input <string>", "Directory with .route files")
     .requiredOption("-o, --output <string>", "Output directory to put build files")
+    .option("-b, --bundle", "Bundle the RoutePack into one binary file")
     .option('--TRUNCATION_INTERVAL <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
     .option('--MAPPING_RADIUS <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
     .option('--TRANSFER_RADIUS <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)

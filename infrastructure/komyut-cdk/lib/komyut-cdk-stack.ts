@@ -42,7 +42,7 @@ export class KomyutCdkStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,
     });
     
-        // 🪣 S3 BUCKETS
+    // 🪣 S3 BUCKETS
     const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
       bucketName: 'komyut-routepack-bucket',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -55,7 +55,7 @@ export class KomyutCdkStack extends cdk.Stack {
     const api = new apigw.RestApi(this, 'KomyutRestApi');
     api.root.addResource('hello-world')
       .addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
-    api.root.addResource('test-manif')
+    api.root.addResource('test-routepack')
       .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadRoutePack));
   }
 }

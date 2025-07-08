@@ -6,7 +6,7 @@ import { calculateTruncatedPath, generateNodeLookup, generateRouteGraph, generat
 import { showEditor } from "./editor";
 import { getPathFromWaypoints } from "./pathgen";
 import { Readline } from "readline/promises";
-import { CompileParameters } from "../../../../shared/types";
+import { CompileParameters, RoutePack } from "../../../../shared/types";
 
 /**
  * Creates a new route file from scratch
@@ -139,3 +139,4 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     writeManifestFile(outputDirectory, routeFiles, compileParameters);
     console.log(`Done compiling!`);
 }
+
