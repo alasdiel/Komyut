@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { open } from 'openurl';
 
-import { RoutePack } from '../../../../shared/types';
+import { RoutePack } from '@shared/types';
 import { buildNodeLookup, findBestPath, mergePathLegs, transformLegsForFrontend, transformLegsFromTruncatedPathsOnly } from './route-solver';
 
 export function showMap(routePackData: RoutePack) {

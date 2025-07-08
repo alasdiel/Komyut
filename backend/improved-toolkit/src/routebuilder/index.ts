@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { showEditor } from "./editor";
 
-import { editRouteFile, newRouteFile, compileAll } from "./functions";
+import { editRouteFile, newRouteFile, compileAll, compileAllAsBundle } from "./functions";
 
 const program = new Command();
 
@@ -46,14 +46,25 @@ program
     .option('--CONTINUE_REWARD <score>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
     .option('--TRANSFER_PENALTY <score>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
     .action(async (opt) => {
-        compileAll(opt.input, opt.output, {
-            MAPPING_RADIUS: opt.MAPPING_RADIUS,
-            TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
-            SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
-            CONTINUE_REWARD: opt.CONTINUE_REWARD,
-            TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
-            TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
-        });
+        if(opt.bundle) {
+            compileAllAsBundle(opt.input, opt.output, {
+                MAPPING_RADIUS: opt.MAPPING_RADIUS,
+                TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
+                SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
+                CONTINUE_REWARD: opt.CONTINUE_REWARD,
+                TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
+                TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
+            });
+        } else {
+            compileAll(opt.input, opt.output, {
+                MAPPING_RADIUS: opt.MAPPING_RADIUS,
+                TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
+                SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
+                CONTINUE_REWARD: opt.CONTINUE_REWARD,
+                TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
+                TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
+            });
+        }        
     });
 
 //Start CLI program

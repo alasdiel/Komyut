@@ -5,7 +5,7 @@
     "moduleResolution": "NodeNext",
     "lib": [
       "es2022"
-    ],
+    ],        
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -23,7 +23,12 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+
+    "baseUrl": "../..",
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
   },
   "exclude": [
     "node_modules",

@@ -1,6 +1,6 @@
 import { Route } from 'aws-cdk-lib/aws-appmesh';
-import { RouteFile, RouteGraph, RoutePack, TransferPoint } from '../../../../shared/types';
-import { readS3Buffer, readS3Text } from '../../helpers/s3helpers';
+import { RouteFile, RouteGraph, RoutePack, TransferPoint } from '@shared/types';
+import { readS3Buffer, readS3Text } from './s3helpers';
 import path from "path";
 import * as fs from 'fs';
 
@@ -222,7 +222,19 @@ export async function loadRoutePackFromS3Parallel(bucket: string, prefix: string
             nodeLookup: nodeLookUpTable
         };        
     } catch (err) {
-        console.error(`[ROUTE LOADER ERR]: ${err}`);
+        console.error(`[ROUTEPACK LOADER ERR]: ${err}`);
         return null;
     }    
+}
+
+export async function laodRoutePackBundleFromS3(bucket: string, prefix: string): Promise<RoutePack | null> {
+    try {
+        const bundleBuf = await readS3Buffer(bucket, `${prefix}/routepack.bundle`);
+        const bundleData = msgp.decode(bundleBuf) as RoutePack;
+
+        return bundleData;
+    } catch (err) {
+        console.error(`[ROUTEPACK LOADER ERR]: ${err}`);
+        return null;
+    }
 }

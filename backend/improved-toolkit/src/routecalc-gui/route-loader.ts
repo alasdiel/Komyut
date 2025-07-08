@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import path from "path";
-import { RoutePack, RouteGraph, TransferPoint, RouteFile } from "../../../../shared/types";
+import { RoutePack, RouteGraph, TransferPoint, RouteFile } from "@shared/types";
 
 import * as msgp from '@msgpack/msgpack';
 

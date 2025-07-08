@@ -1,6 +1,6 @@
 import * as gl from 'geolib';
 
-import { RouteGraph } from "../../../../shared/types";
+import { RouteGraph } from "@shared/types";
 const TinyQueue = require('tinyqueue');
 
 export function astar(
