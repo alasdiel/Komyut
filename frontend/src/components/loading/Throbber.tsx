@@ -1,4 +1,9 @@
+import { useLoadingStore } from './loadingStore.ts'
+
 export default function PingThrobber() {
+    const loading = useLoadingStore((s) => s.loading);
+    if (!loading) return null;
+
   return (
     <div className="flex items-center justify-center min-h-screen w-full bg-primary overflow-hidden">
       <div className="relative w-1/4 aspect-square">
