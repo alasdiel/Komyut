@@ -15,6 +15,9 @@ export class KomyutCdkStack extends cdk.Stack {
 
     // The code that defines your stack goes here    
 
+    // 💿 DYNAMODB TABLES
+      // TBA
+      
     // ======================
     // SECTION 1 Functions
     // ======================
@@ -50,7 +53,7 @@ export class KomyutCdkStack extends cdk.Stack {
     // SECTION 2 Storage
     // ======================
 
-    // 2.1 🪣 S3 BUCKETS
+    // 🪣 S3 BUCKETS
     const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
       bucketName: 'komyut-routepack-bucket',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -58,9 +61,6 @@ export class KomyutCdkStack extends cdk.Stack {
       publicReadAccess: false,
     });    
     routePackBucket.grantRead(fnTestLoadManifest);
-
-    // 2.2 💿 DYNAMODB TABLES
-      // TBA
 
     // ======================
     // SECTION 3 Authentication
