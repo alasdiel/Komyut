@@ -4,6 +4,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNJS from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 import * as path from 'path';
 
@@ -13,7 +15,9 @@ export class KomyutCdkStack extends cdk.Stack {
 
     // The code that defines your stack goes here    
 
-    // 💿 DYNAMODB TABLES
+    // ======================
+    // SECTION 1 Functions
+    // ======================
 
     // ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
     const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
@@ -21,8 +25,8 @@ export class KomyutCdkStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_20_X,      
     });
 
-    const fnTestLoadRoutePack = new lambdaNJS.NodejsFunction(this, 'TestLoadRoutePackFunction', {
-      entry: path.join(__dirname, '../lambda/findpath/test-routepack.ts'),
+    const fnTestLoadManifest = new lambdaNJS.NodejsFunction(this, 'TestManifestFunction', {
+      entry: path.join(__dirname, '../lambda/findpath/test.ts'),
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(120)
     });
@@ -41,21 +45,57 @@ export class KomyutCdkStack extends cdk.Stack {
       entry: path.join(__dirname, '../lambda/signup/signup.ts'),
       runtime: lambda.Runtime.NODEJS_20_X,
     });
-    
-    // 🪣 S3 BUCKETS
+
+    // ======================
+    // SECTION 2 Storage
+    // ======================
+
+    // 2.1 🪣 S3 BUCKETS
     const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
       bucketName: 'komyut-routepack-bucket',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       publicReadAccess: false,
     });    
-    routePackBucket.grantRead(fnTestLoadRoutePack);
+    routePackBucket.grantRead(fnTestLoadManifest);
+
+    // 2.2 💿 DYNAMODB TABLES
+      // TBA
+
+    // ======================
+    // SECTION 3 Authentication
+    // ======================
+
+    // 🔑 COGNITO
+    const userPool = new cognito.UserPool(this, 'UserPool', {
+      selfSignUpEnabled: true,
+      signInAliases: { email: true },
+    });
+
+    const client = userPool.addClient('WebClient', {
+      authFlows: { userPassword: true },
+    });
+
+    
+    // ======================
+    // SECTION 4 API Gateway
+    // ======================
 
     // 🚦 APIGATEWAY DEFINITION
     const api = new apigw.RestApi(this, 'KomyutRestApi');
     api.root.addResource('hello-world')
       .addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
-    api.root.addResource('test-routepack')
-      .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadRoutePack));
+    api.root.addResource('test-manif')
+      .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadManifest));
+
+
+    // ======================
+    // SECTION 5 Frontend Implementation
+    // ======================
+
+    // 💻 OUTPUTS
+    new cdk.CfnOutput(this, 'ApiUrl', { value: api.url });
+    new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+    new cdk.CfnOutput(this, 'ClientId', { value: client.userPoolClientId });
   }
 }
