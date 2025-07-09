@@ -17,7 +17,7 @@ export class KomyutCdkStack extends cdk.Stack {
 
     // 💿 DYNAMODB TABLES
       // TBA
-      
+
     // ======================
     // SECTION 1 Functions
     // ======================
@@ -29,7 +29,7 @@ export class KomyutCdkStack extends cdk.Stack {
     });
 
     const fnTestLoadManifest = new lambdaNJS.NodejsFunction(this, 'TestManifestFunction', {
-      entry: path.join(__dirname, '../lambda/findpath/test.ts'),
+      entry: path.join(__dirname, '../lambda/findpath/test-routepack.ts'),
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.seconds(120)
     });
@@ -70,6 +70,11 @@ export class KomyutCdkStack extends cdk.Stack {
     const userPool = new cognito.UserPool(this, 'UserPool', {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
+      lambdaTriggers: {
+        postConfirmation: fnConfirmSignup, // Trigger for post-confirmation
+        preSignUp: fnSignup, // Trigger for pre-signup
+        preAuthentication: fnSignin, // Trigger for pre-authentication
+      },
     });
 
     const client = userPool.addClient('WebClient', {
@@ -88,6 +93,18 @@ export class KomyutCdkStack extends cdk.Stack {
     api.root.addResource('test-manif')
       .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadManifest));
 
+    // NEW
+    const authorizer = new apigw.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool], 
+      identitySource: 'method.request.header.Authorization', 
+    });
+
+    api.root.addResource('profile') 
+      .addMethod('GET', new apigw.LambdaIntegration(fnSignup), { // I need to add a profile function
+      authorizer,
+      authorizationType: apigw.AuthorizationType.COGNITO, 
+    });
+
 
     // ======================
     // SECTION 5 Frontend Implementation
@@ -97,5 +114,6 @@ export class KomyutCdkStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ApiUrl', { value: api.url });
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
     new cdk.CfnOutput(this, 'ClientId', { value: client.userPoolClientId });
+    new cdk.CfnOutput(this, 'Region', { value: this.region });
   }
 }
