@@ -1,7 +1,7 @@
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 
-const s3 = new S3Client({region: 'ap-southeast-2'});
+const s3 = new S3Client({region: 'ap-southeast-1'}); // Changed region to 'ap-southeast-1' from 'ap-southeast-2'
 
 export async function readS3Text(bucket: string, key: string): Promise<string> {
     const res = await s3.send(new GetObjectCommand({Bucket: bucket, Key: key}));

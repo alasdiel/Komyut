@@ -31,7 +31,8 @@ export class KomyutCdkStack extends cdk.Stack {
 		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
 			entry: path.join(__dirname, '../lambda/findpath/findbestpath.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
-			timeout: cdk.Duration.seconds(120)
+			timeout: cdk.Duration.seconds(300),
+			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 		});
 
 		// KARLO'S WORK
@@ -52,7 +53,7 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
-			bucketName: 'komyut-routepack-bucket',
+			bucketName: `komyut-routepack-bucket`, 
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 			publicReadAccess: false,

@@ -138,7 +138,7 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
 }
 
 async function getOSRMWalkingPath(from: [number, number], to: [number, number]): Promise<[number, number][]> {
-    const url = `http://localhost:5000/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const url = `http://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
     const res = await fetch(url);
     const data: any = await res.json();
 
