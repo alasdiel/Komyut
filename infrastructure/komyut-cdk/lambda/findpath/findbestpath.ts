@@ -1,5 +1,5 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { laodRoutePackBundleFromS3, loadRoutePack, loadRoutePackFromS3, loadRoutePackFromS3Parallel } from "../../helpers/routepackLoader";
+import { laodRoutePackBundle, loadRoutePack, loadRoutePackFromS3, loadRoutePackFromS3Parallel } from "../../helpers/routepackLoader";
 import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
 
@@ -18,8 +18,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             console.log("COLD START, loading routepack");
             // cachedRoutePack = await loadRoutePackFromS3Parallel('komyut-routepack-bucket', 'routepack');
             const time1 = performance.now();
-            console.log(`start function laodRoutePackBundleFromS3`);
-            cachedRoutePack = await laodRoutePackBundleFromS3('komyut-routepack-bucket', 'routepack-bundle');
+            console.log(`start function laodRoutePackBundle`);
+            cachedRoutePack = await laodRoutePackBundle('komyut-routepack-bucket', 'routepack-bundle');
             console.log(`laodRoutePackBundleFromS3 TOOK ${(performance.now() - time1)}ms`);
             
             if (!cachedRoutePack) {
