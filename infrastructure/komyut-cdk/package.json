@@ -30,6 +30,7 @@
     "aws-sdk": "^2.1692.0",
     "constructs": "^10.0.0",
     "geolib": "^3.3.4",
+    "node-fetch": "^3.3.2",
     "tinyqueue": "^3.0.0"
   }
 }

@@ -2,13 +2,7 @@ import { build } from "esbuild";
 
 build({
   entryPoints: [
-    "./login/login.ts",
-    "./createUser/createUser.ts",
-    "./confirmSignup/confirmSignup.ts",
-    "./routepackloader/loader.ts",
-    "./findpath/test.ts",
-    "./signin/signin.ts",
-    "./signup/signup.ts",
+    "./findpath/findbestpath.ts",
     // add more as needed
   ],
   entryNames: "[name]/index",

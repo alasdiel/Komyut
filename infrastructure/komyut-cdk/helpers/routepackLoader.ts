@@ -1,10 +1,13 @@
 import { Route } from 'aws-cdk-lib/aws-appmesh';
 import { RouteFile, RouteGraph, RoutePack, TransferPoint } from '@shared/types';
-import { readS3Buffer, readS3Text } from './s3helpers';
+import { readS3Buffer, readS3Text, readCloudFrontBuffer, readCloudFrontText } from './s3helpers';
 import path from "path";
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
 import * as msgp from '@msgpack/msgpack';
+
+const CLOUDFRONT_DOMAIN = 'https://d2zt5474mwwtx6.cloudfront.net';
 
 //Load from native filesystem
 export function loadRoutePack(inputDirectory: string): RoutePack | null {
@@ -121,6 +124,7 @@ function loadRouteData(inputDirectory: string, routeId: string) {
 
 //Load from S3 bucket
 export async function loadRoutePackFromS3(bucket: string, prefix: string): Promise<RoutePack | null> {
+    
     try {        
         // --- Manifest        
         const manifestText = await readS3Text(bucket, `${prefix}/routepack.json`);        
@@ -229,12 +233,25 @@ export async function loadRoutePackFromS3Parallel(bucket: string, prefix: string
 
 export async function laodRoutePackBundleFromS3(bucket: string, prefix: string): Promise<RoutePack | null> {
     try {
-        const bundleBuf = await readS3Buffer(bucket, `${prefix}/routepack.bundle`);
-        const bundleData = msgp.decode(bundleBuf) as RoutePack;
+        // First try CloudFront (NEW)
+        console.log(`Attempting CloudFront load from ${prefix}/routepack.bundle`);
+        const bundleBuf = await readCloudFrontBuffer(`${prefix}/routepack.bundle`);
+        return msgp.decode(bundleBuf) as RoutePack;
+    } catch (cloudfrontErr) {
+        console.warn('CloudFront failed, falling back to S3:', cloudfrontErr);
+        
+        // Fallback to S3 if CloudFront fails
+        try {
+            const bundleBuf = await readS3Buffer(bucket, `${prefix}/routepack.bundle`);
+            const bundleData = msgp.decode(bundleBuf) as RoutePack;
 
         return bundleData;
-    } catch (err) {
-        console.error(`[ROUTEPACK LOADER ERR]: ${err}`);
-        return null;
+        } catch (err) {
+            console.error(`[ROUTEPACK LOADER ERR]: ${err}`);
+            return null;
+        }
     }
 }
+
+
+

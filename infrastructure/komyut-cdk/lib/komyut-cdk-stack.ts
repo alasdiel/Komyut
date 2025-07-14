@@ -4,6 +4,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNJS from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 
 import * as path from 'path';
 
@@ -34,6 +36,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			timeout: cdk.Duration.seconds(300),
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 		});
+		// In your CDK stack
 
 		// KARLO'S WORK
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
@@ -60,6 +63,18 @@ export class KomyutCdkStack extends cdk.Stack {
 		});
 		// routePackBucket.grantRead(fnTestLoadRoutePack);
 		routePackBucket.grantRead(fnCalcPlan);
+
+		// ☁️ CLOUDFRONT DISTRIBUTION
+		const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
+		defaultBehavior: {
+			origin: new origins.S3Origin(routePackBucket),
+			allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+			viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+			cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
+		},
+		defaultRootObject: 'routepack-bundle/routepack.json',
+		priceClass: cloudfront.PriceClass.PRICE_CLASS_100 // Cheapest available option, slowest
+		});
 
 		// 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi');
