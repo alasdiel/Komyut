@@ -3,6 +3,7 @@ import App from './App'
 import Map from './pages/Map'
 import NotFoundPage from './pages/NotFoundPage'
 import TestPage from './pages/TestPage'
+import SignIn from './pages/SignIn'
 
 
 const router = createBrowserRouter([
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
   {
     path: '/test-env',
     element: <TestPage />,
+  },
+  {
+    path: '/sign-in',
+    element: <SignIn />,
   },
   /*
     #TODO: remove in prod
