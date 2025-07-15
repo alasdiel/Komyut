@@ -15,7 +15,8 @@ export default function Map() {
       >
     
     {
-          // @ts-expect-error leaflet being removed soon          <TileLayer
+          // @ts-expect-error leaflet being removed soon      
+          <TileLayer
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           
