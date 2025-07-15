@@ -1,7 +1,8 @@
 import * as gl from 'geolib';
 
 import { RouteGraph } from "@shared/types";
-const TinyQueue = require('tinyqueue');
+// const TinyQueue = require('tinyqueue');
+import TinyQueue from 'tinyqueue';
 
 export function astar(
     routeGraph: RouteGraph,

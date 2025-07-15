@@ -79,10 +79,10 @@ async function getWalkingGeometry(from: [number, number], to: [number, number]) 
         [from[0], from[1]],
         [to[0], to[1]]
     ].map(([lat, lng]) => `${lng},${lat}`).join(';');
-    const url = `http://localhost:5000/route/v1/bike/${coordStr}?overview=false`;
+    const url = `http://router.project-osrm.org/route/v1/bike/${coordStr}?overview=false`;
 
     const res = await fetch(url);
-    const json = await res.json();
+    const json: any = await res.json();
 
     return {
         dist: json.routes[0].distance,
@@ -138,9 +138,9 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
 }
 
 async function getOSRMWalkingPath(from: [number, number], to: [number, number]): Promise<[number, number][]> {
-    const url = `http://localhost:5000/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const url = `http://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
     const res = await fetch(url);
-    const data = await res.json();
+    const data: any = await res.json();
 
     if (data?.routes?.[0]?.geometry?.coordinates) {
         return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);

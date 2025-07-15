@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { showEditor } from "./editor";
 
-import { editRouteFile, newRouteFile, compileAll } from "./functions";
+import { editRouteFile, newRouteFile, compileAll, compileAllAsBundle } from "./functions";
 
 const program = new Command();
 
@@ -38,6 +38,7 @@ program
     .description("Compiles a Route Pack from routes in the input directory and creates a directory for output")
     .requiredOption("-i, --input <string>", "Directory with .route files")
     .requiredOption("-o, --output <string>", "Output directory to put build files")
+    .option("-b, --bundle", "Bundle the RoutePack into one binary file")
     .option('--TRUNCATION_INTERVAL <meters>', "Truncation interval in meters", (val) => parseInt(val, 10), 300)
     .option('--MAPPING_RADIUS <meters>', "T->F path mapping radius in meters", (val) => parseInt(val, 10), 1)
     .option('--TRANSFER_RADIUS <meters>', "Maximum transfer walk distance", (val) => parseInt(val, 10), 500)
@@ -45,14 +46,25 @@ program
     .option('--CONTINUE_REWARD <score>', "RouteGraph edge reward for continuing (negative is rewarding)", (val) => parseInt(val, 10), -100)
     .option('--TRANSFER_PENALTY <score>', "RouteGraph edge penalty for transferring", (val) => parseInt(val, 10), 10000)
     .action(async (opt) => {
-        compileAll(opt.input, opt.output, {
-            MAPPING_RADIUS: opt.MAPPING_RADIUS,
-            TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
-            SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
-            CONTINUE_REWARD: opt.CONTINUE_REWARD,
-            TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
-            TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
-        });
+        if(opt.bundle) {
+            compileAllAsBundle(opt.input, opt.output, {
+                MAPPING_RADIUS: opt.MAPPING_RADIUS,
+                TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
+                SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
+                CONTINUE_REWARD: opt.CONTINUE_REWARD,
+                TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
+                TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
+            });
+        } else {
+            compileAll(opt.input, opt.output, {
+                MAPPING_RADIUS: opt.MAPPING_RADIUS,
+                TRANSFER_RADIUS: opt.TRANSFER_RADIUS,
+                SPATIAL_TOLERANCE: opt.SPATIAL_TOLERANCE,
+                CONTINUE_REWARD: opt.CONTINUE_REWARD,
+                TRANSFER_PENALTY: opt.TRANSFER_PENALTY,
+                TRUNCATION_INTERVAL: opt.TRUNCATION_INTERVAL
+            });
+        }        
     });
 
 //Start CLI program

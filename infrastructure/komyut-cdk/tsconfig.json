@@ -5,12 +5,13 @@
     "moduleResolution": "NodeNext",
     "lib": [
       "es2022"
-    ],
+    ],        
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
+    "noEmit": true,
     "alwaysStrict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
@@ -22,7 +23,12 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+
+    "baseUrl": "../..",
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
   },
   "exclude": [
     "node_modules",

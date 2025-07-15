@@ -6,3 +6,7 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+#Anthony's ignores
+.env
+cdk.context.json

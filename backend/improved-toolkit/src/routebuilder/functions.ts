@@ -1,12 +1,14 @@
 import * as fs from "fs";
 import * as readline from "readline";
+import * as path from 'path';
+import * as msgp from '@msgpack/msgpack';
 
 import { readRouteFile, saveRouteFile } from "./io-functions";
 import { calculateTruncatedPath, generateNodeLookup, generateRouteGraph, generateTransferPoints, generateTruncatedFullMapping, readAllRouteFiles, writeAllRouteFiles, writeCacheFile, writeManifestFile, writePathMappingsToFiles, writeTruncatedPathsToFiles } from "./compile-functions";
 import { showEditor } from "./editor";
 import { getPathFromWaypoints } from "./pathgen";
 import { Readline } from "readline/promises";
-import { CompileParameters } from "../shared/types";
+import { CompileParameters, RoutePack, RouteFile } from "@shared/types";
 
 /**
  * Creates a new route file from scratch
@@ -136,6 +138,71 @@ export async function compileAll(inputDirectory: string, outputDirectory: string
     console.log(`Writing NodeLookUp to file`);
     writeCacheFile(outputDirectory, 'nodeLookup.cache', nodeLookup);
 
+    writeManifestFile(outputDirectory, routeFiles, compileParameters);
+    console.log(`Done compiling!`);
+}
+
+export async function compileAllAsBundle(inputDirectory: string, outputDirectory: string, compileParameters: CompileParameters) {
+    if(!fs.existsSync(outputDirectory)) fs.mkdirSync(outputDirectory);
+
+    //Read all route files
+    const routeFiles = readAllRouteFiles(inputDirectory);    
+    const truncatedPaths: { routeId: string, truncatedPath: [number, number][]}[] = [];
+    const pathMappings: { routeId: string, mapping: number[] }[] = [];
+
+    const routes: {
+            routeId: string,
+            routeFile: RouteFile,
+            mappings: number[],
+            truncatedPath: [number, number][]
+        }[] = [];
+
+    routeFiles.forEach(r => {
+        console.log(`Read RouteFile ID:${r.routeId}, generating truncatedPaths and mappings now.`);
+
+        const tPath = calculateTruncatedPath(r.path, compileParameters.TRUNCATION_INTERVAL)
+        truncatedPaths.push({
+            routeId: r.routeId,
+            truncatedPath: tPath
+        });
+
+        const mapping = generateTruncatedFullMapping(tPath, r.path, compileParameters.MAPPING_RADIUS);
+        pathMappings.push({
+            routeId: r.routeId,
+            mapping: mapping
+        });
+
+        routes.push({
+            routeId: r.routeId,
+            routeFile: r,
+            mappings: mapping,
+            truncatedPath: tPath
+        });
+    });
+
+    console.log(`Generating TransferPoints from ${
+        truncatedPaths.reduce((sum, route) => {return sum + route.truncatedPath.length;}, 0)
+    } truncated points (tr=${compileParameters.TRANSFER_RADIUS}m, st=${compileParameters.SPATIAL_TOLERANCE}m)`);
+    const transferPoints = generateTransferPoints(truncatedPaths, compileParameters.TRANSFER_RADIUS, compileParameters.SPATIAL_TOLERANCE);    
+    console.log(`Generated ${transferPoints.length} TransferPoints`);
+
+    console.log(`Generating RouteGraph`);
+    const routeGraph = generateRouteGraph(truncatedPaths, transferPoints, compileParameters.CONTINUE_REWARD, compileParameters.TRANSFER_PENALTY);
+    console.log(`RouteGraph done generating`);
+
+    console.log(`Generating Node Lookup Table`);
+    const nodeLookup = generateNodeLookup(truncatedPaths);
+    console.log(`Node Lookup Table done generating`);
+
+    const routePackToSave: RoutePack = {
+        routeGraph: routeGraph,
+        transferPoints: transferPoints,
+        nodeLookup: nodeLookup,
+        routes: routes
+    };
+
+    console.log(`Writing RoutePack to bundle`);    
+    fs.writeFileSync(path.join(outputDirectory, 'routepack.bundle'), msgp.encode(routePackToSave));
     writeManifestFile(outputDirectory, routeFiles, compileParameters);
     console.log(`Done compiling!`);
 }

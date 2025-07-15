@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "geolib": "^3.3.4",
+    "tinyqueue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/geolib": "^2.0.3"
+  }
+}
