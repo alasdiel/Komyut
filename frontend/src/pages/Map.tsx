@@ -1,7 +1,6 @@
 import MapLayout from "@/components/layouts/MapLayout"
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, ZoomControl } from "react-leaflet"
-import SidebarToggleControl from "@/components/SidebarToggleControl"
 
 export default function Map() {
 

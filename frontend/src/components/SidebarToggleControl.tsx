@@ -1,5 +1,4 @@
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Menu } from "lucide-react"
 
 export default function SidebarToggleControl() {
   return (
