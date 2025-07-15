@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 export default function Footer() {
   return (      
   <footer className="bg-primary text-white p-6 mt-auto relative overflow-hidden">
