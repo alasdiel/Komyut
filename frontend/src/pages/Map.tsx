@@ -5,6 +5,7 @@ export default function Map() {
 
   return (
     <div className="h-screen w-screen"> 
+    {
     {/* @ts-expect-error leaflet being removed soon*/}
     <MapContainer 
       center={[7.0647, 125.6088]} 
@@ -12,6 +13,8 @@ export default function Map() {
       className="h-full w-full"
       zoomControl={false}
       >
+    }
+    {
           {/* @ts-expect-error leaflet being removed soon*/}
           <TileLayer
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -20,6 +23,7 @@ export default function Map() {
             />
            <ZoomControl position="bottomright" />
       </MapContainer>
+    }
     </div>
   )
 }
