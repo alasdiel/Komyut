@@ -73,7 +73,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
 		},
 		defaultRootObject: 'routepack-bundle/routepack.json',
-		priceClass: cloudfront.PriceClass.PRICE_CLASS_100 // Cheapest available option, slowest
+		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose the price class based regional location
 		});
 
 		// 🚦 APIGATEWAY DEFINITION
