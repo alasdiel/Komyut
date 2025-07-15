@@ -13,13 +13,14 @@ export default function Map() {
       className="h-full w-full"
       zoomControl={false}
       >
-    }
+    
     {
           // @ts-expect-error leaflet being removed soon          <TileLayer
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           
             />
+    }
            <ZoomControl position="bottomright" />
       </MapContainer>
     }
