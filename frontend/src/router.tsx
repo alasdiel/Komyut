@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from './App'
 import Map from './pages/Map'
 import NotFoundPage from './pages/NotFoundPage'
-import TestPage from './pages/TestPage'
+import { TestPage } from './pages/TestPage'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 
