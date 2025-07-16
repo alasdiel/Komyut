@@ -6,26 +6,26 @@ interface Position {
   lng: number;
 }
 
-interface RouteData {
-  distance?: string;
-  duration?: string;
-  legs?: any[];
-  path?: number[][];
-  error?: string;
+interface Leg {
+  type: string;
+  routeId: string | null;
+  coordinates: [number, number][];
 }
 
 export function RouteCalcButton() {
   const [isLoading, setIsLoading] = useState(false);
-  const [routeData, setRouteData] = useState<RouteData | null>(null);
+  const [legs, setLegs] = useState<Leg[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // HARDCODED POSITIONS
+  // Should be replaced with actual user input or dynamic values
   const startPos: Position = { lat: 7.0636, lng: 125.5945 };
   const endPos: Position = { lat: 7.0639, lng: 125.6229 };
 
   const calculateRoute = async () => {
     setIsLoading(true);
     setError(null);
-    setRouteData(null);
+    setLegs(null);
 
     try {
       const response = await fetch(
@@ -45,12 +45,13 @@ export function RouteCalcButton() {
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
-      const data: RouteData = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
+      const data = await response.json();
+
+      if (!data.legs) {
+        throw new Error("No route data returned");
       }
 
-      setRouteData(data);
+      setLegs(data.legs);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to calculate route');
     } finally {
@@ -60,8 +61,8 @@ export function RouteCalcButton() {
 
   return (
     <div>
-      <p><strong>Start:</strong> {startPos.lat}, {startPos.lng}</p>
-      <p><strong>End:</strong> {endPos.lat}, {endPos.lng}</p>
+      <p>Start: {startPos.lat}, {startPos.lng}</p>
+      <p>End: {endPos.lat}, {endPos.lng}</p>
 
       <Button onClick={calculateRoute} disabled={isLoading}>
         {isLoading ? "Calculating..." : "Calculate Route"}
@@ -73,11 +74,15 @@ export function RouteCalcButton() {
         </div>
       )}
 
-      {routeData && (
+      {legs && (
         <div>
-          {routeData.distance && <p><strong>Distance:</strong> {routeData.distance}</p>}
-          {routeData.duration && <p><strong>Duration:</strong> {routeData.duration}</p>}
-          <pre>{JSON.stringify(routeData, null, 2)}</pre>
+          {legs.map((leg, index) => (
+            <div key={index}>
+              <p><strong>Leg {index + 1}:</strong> {leg.type} {leg.routeId ? `(${leg.routeId})` : ""}</p>
+              <p>Coordinates: {leg.coordinates.length} points</p>
+            </div>
+          ))}
+          <pre>{JSON.stringify(legs, null, 2)}</pre>
         </div>
       )}
     </div>
