@@ -1,13 +1,19 @@
 import Navbar from "./components/AppNavbar";
 import Footer from "./components/AppFooter";
+import HeroSection from "./components/HeroSection";
+import AboutSection from "./components/AboutSection";
 
 export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
 
-      <main className="flex-grow p-6">
+      {/* <main className="flex-grow p-6">
         <h2 className="text-2xl font-semibold">Hello, world!</h2>
+      </main> */}
+      <main className="flex-grow p-6">
+        <HeroSection />
+        <AboutSection />
       </main>
 
       {/*TODO: Our Work Section*/}
@@ -17,6 +23,8 @@ export default function App() {
       {/* Footer */}
       <Footer />
     </div>
+    
+    
   );
 }
 
