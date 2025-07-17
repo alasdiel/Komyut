@@ -12,8 +12,14 @@ const MapComponent = () => {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://demotiles.maplibre.org/style.json',
-      center: [125.6088, 7.0647],
-      zoom: 8,
+      center: [125.6088, 7.15],
+      zoom: 10,
+      minZoom: 8,
+      // maxBounds: 
+      // [
+      //  [],
+      //
+      //  []]
     });
 
     return () => {
