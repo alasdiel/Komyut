@@ -93,7 +93,7 @@ function SignUp() {
       // Registration successful - redirect or show success message
       alert('Registration successful!');
       // You might want to redirect here: router.push('/login');
-    } catch (error) {
+    } catch{
       setErrors(prev => ({ ...prev, general: 'Registration failed. Please try again.' }));
     } finally {
       setIsSubmitting(false);
