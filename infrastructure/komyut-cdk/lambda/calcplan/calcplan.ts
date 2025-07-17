@@ -4,8 +4,8 @@ import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
 
 let cachedRoutePack: RoutePack | null = null;
-const CLOUDFRONT_DOMAIN = 'https://d2zt5474mwwtx6.cloudfront.net'; 
 
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 
 export const handler: APIGatewayProxyHandler = async (event) => {
     try {

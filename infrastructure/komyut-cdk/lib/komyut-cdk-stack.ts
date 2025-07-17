@@ -31,7 +31,7 @@ export class KomyutCdkStack extends cdk.Stack {
 		});
 
 		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
-			entry: path.join(__dirname, '../lambda/findpath/findbestpath.ts'),
+			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			timeout: cdk.Duration.seconds(300),
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
