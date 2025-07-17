@@ -28,7 +28,7 @@ export async function findBestPath(startCoord: [number, number], endCoord: [numb
             cost: dist + WALK_PENALTY,            
         });
     }
-    timing['buildStartLinks'] = now() - t0;
+    timing['getStartWalks'] = now() - t0;
 
     // Step 3: Add end walking links
     t0 = now();
@@ -41,7 +41,7 @@ export async function findBestPath(startCoord: [number, number], endCoord: [numb
             cost: dist + WALK_PENALTY,            
         });
     }
-    timing['buildEndLinks'] = now() - t0;
+    timing['getEndWalks'] = now() - t0;
 
     // Step 4: Build node lookup
     t0 = now();
@@ -122,7 +122,7 @@ async function getOSRMWalkingDistance(from: [number, number], to: [number, numbe
               Math.sin(Δλ / 2) ** 2;
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
+
     await new Promise(res => setTimeout(res, 40));
     return R * c;
 }
@@ -175,13 +175,15 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
 }
 
 async function getOSRMWalkingPath(from: [number, number], to: [number, number]): Promise<[number, number][]> {
-    const url = `http://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-    const res = await fetch(url);
-    const data: any = await res.json();
+    // const url = `http://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    // const res = await fetch(url);
+    // const data: any = await res.json();
 
-    if (data?.routes?.[0]?.geometry?.coordinates) {
-        return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
-    }
+    // if (data?.routes?.[0]?.geometry?.coordinates) {
+    //     return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
+    // }
+
+    await new Promise(res => setTimeout(res, 40));
 
     return [from, to]; // fallback to straight line
 }
