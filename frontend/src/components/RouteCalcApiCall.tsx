@@ -27,9 +27,11 @@ export function RouteCalcButton() {
     setError(null);
     setLegs(null);
 
-    try {
-      const response = await fetch(
-        'https://3ant8fvf5i.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route',
+    // Use the new environment variable for the RouteCalc API URL
+  const apiUrl = import.meta.env.VITE_ROUTECALC_API;
+    
+  try {
+      const response = await fetch(apiUrl,
         {
           method: 'POST',
           mode: 'cors',

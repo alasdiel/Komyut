@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import fetch from 'node-fetch';
 
 const s3 = new S3Client({region: 'ap-southeast-1'}); // Changed region to 'ap-southeast-1' from 'ap-southeast-2'
-const CLOUDFRONT_DOMAIN = 'https://d2zt5474mwwtx6.cloudfront.net';
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN!; // Updated to the new CloudFront domain
 
 // S3 HELPER FUNCTIONS (OLD)
 export async function readS3Text(bucket: string, key: string): Promise<string> {
