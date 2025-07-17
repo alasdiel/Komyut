@@ -73,16 +73,32 @@ export class KomyutCdkStack extends cdk.Stack {
 			cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
 		},
 		defaultRootObject: 'routepack-bundle/routepack.json',
-		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose the price class based regional location
+		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
 		});
 
 		// 🚦 APIGATEWAY DEFINITION
-		const api = new apigw.RestApi(this, 'KomyutRestApi');
+		const api = new apigw.RestApi(this, 'KomyutRestApi', {
+			defaultCorsPreflightOptions: {
+				allowOrigins: apigw.Cors.ALL_ORIGINS, 
+				allowMethods: apigw.Cors.ALL_METHODS,
+				allowHeaders: [
+				'Content-Type',
+				'X-Amz-Date',
+				'Authorization',
+				'X-Api-Key',
+				'X-Amz-Security-Token'
+				],
+			},
+			});
+
 		api.root.addResource('hello-world')
 			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
 		// api.root.addResource('test-routepack')
 		//   .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadRoutePack));
+
 		api.root.addResource('calc-route')
-			.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan));
+		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
+			proxy: true, // Added to allow the Lambda func to handle the request body directly
+		}));
 	}
 }

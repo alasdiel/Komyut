@@ -7,7 +7,7 @@ import fetch from 'node-fetch';
 
 import * as msgp from '@msgpack/msgpack';
 
-const CLOUDFRONT_DOMAIN = 'https://d2zt5474mwwtx6.cloudfront.net';
+const CLOUDFRONT_DOMAIN = 'https://dea0nytymdupd.cloudfront.net';
 
 //Load from native filesystem
 export function loadRoutePack(inputDirectory: string): RoutePack | null {
