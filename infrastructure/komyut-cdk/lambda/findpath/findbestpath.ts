@@ -4,8 +4,6 @@ import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
 
 let cachedRoutePack: RoutePack | null = null;
-const CLOUDFRONT_DOMAIN = 'https://d2zt5474mwwtx6.cloudfront.net'; 
-
 
 export const handler: APIGatewayProxyHandler = async (event) => {
     try {
@@ -67,6 +65,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
         return {
             statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+            },
             body: JSON.stringify({
                 legs,                
             })
@@ -75,6 +78,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         console.error(`[ROUTE HANDLER ERR]: ${err}`);
         return {
             statusCode: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+            },
             body: JSON.stringify({
                 error: `${err}`
             })
