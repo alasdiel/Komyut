@@ -24,17 +24,14 @@ export class KomyutCdkStack extends cdk.Stack {
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
 
-		const fnTestLoadRoutePack = new lambdaNJS.NodejsFunction(this, 'TestLoadRoutePackFunction', {
-			entry: path.join(__dirname, '../lambda/findpath/test-routepack.ts'),
-			runtime: lambda.Runtime.NODEJS_20_X,
-			timeout: cdk.Duration.seconds(120)
-		});
-
 		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
 			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			timeout: cdk.Duration.seconds(300),
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
+			environment: {
+				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
+			}
 		});
 		// In your CDK stack
 
@@ -56,25 +53,25 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
-			bucketName: `komyut-routepack-bucket`, 
+			bucketName: `komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
-			publicReadAccess: false,
+			publicReadAccess: false,						
 		});
 		// routePackBucket.grantRead(fnTestLoadRoutePack);
 		routePackBucket.grantRead(fnCalcPlan);
 
 		// ☁️ CLOUDFRONT DISTRIBUTION
-		const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
-		defaultBehavior: {
-			origin: new origins.S3Origin(routePackBucket),
-			allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-			viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-			cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
-		},
-		defaultRootObject: 'routepack-bundle/routepack.json',
-		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose the price class based regional location
-		});
+		// const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
+		// defaultBehavior: {
+		// 	origin: new origins.S3Origin(routePackBucket),
+		// 	allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+		// 	viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+		// 	cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
+		// },
+		// defaultRootObject: 'routepack-bundle/routepack.json',
+		// priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose the price class based regional location
+		// });
 
 		// 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi');

@@ -231,7 +231,7 @@ export async function loadRoutePackFromS3Parallel(bucket: string, prefix: string
     }    
 }
 
-export async function laodRoutePackBundle(bucket: string, prefix: string): Promise<RoutePack | null> {
+export async function loadRoutePackBundle(bucket: string, prefix: string): Promise<RoutePack | null> {
     try {
         // First try CloudFront (NEW)
         console.log(`Attempting CloudFront load from ${prefix}/routepack.bundle`);
