@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react'; // Import eye icons from Lucide React
-
+import { Link } from 'react-router-dom'
 function SignUp() {
   const [formData, setFormData] = useState({
     accountName: '',
@@ -214,6 +214,10 @@ function SignUp() {
           >
             {isSubmitting ? 'Creating Account...' : 'Create New Account!'}
           </Button>
+          <div className="text-sm text-center text-blue-600 hover:underline">
+            <Link to="/sign-in"> Already have an account? Login here!
+            </Link>
+          </div>
         </form>
       </div>
     </div>
