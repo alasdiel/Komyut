@@ -58,11 +58,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             })
         };
     } catch (err) {
-        console.error(`[ROUTE HANDLER ERR]: ${err}`);
+        console.error(`[ROUTE HANDLER ERR]: ${err instanceof Error ? err.stack : err}`);
         return {
             statusCode: 500,
             body: JSON.stringify({
-                error: `${err}`
+                error: `${err instanceof Error ? err.stack : err}`
             })
         };
     }

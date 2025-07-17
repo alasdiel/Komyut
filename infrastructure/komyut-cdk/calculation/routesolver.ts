@@ -4,49 +4,71 @@ import { RoutePack, RouteGraph } from "@shared/types";
 import { astar, dijkstra } from "./pathfinding";
 
 export async function findBestPath(startCoord: [number, number], endCoord: [number, number], routePack: RoutePack) {
+    const timing: Record<string, number> = {};
+    const now = () => performance.now();
+
     const startNode = 'START';
     const endNode = 'END';
     const clonedGraph = structuredClone(routePack.routeGraph);
     const WALK_TO_SAMPLE_LIMIT = 5;
 
+    // Step 1: Find nearest nodes to start
+    let t0 = now();
     const startLinks = findClosestRouteNodes(startCoord, routePack, WALK_TO_SAMPLE_LIMIT);
     clonedGraph[startNode] = [];
+    timing['findClosestStartNodes'] = now() - t0;
 
+    // Step 2: Add start walking links (calls OSRM API)
     const WALK_PENALTY = 200;
+    t0 = now();
     for (const link of startLinks) {
-        const { dist, geometry } = await getWalkingGeometry(startCoord, link.coord);
+        const dist = await getOSRMWalkingDistance(startCoord, link.coord);
         clonedGraph[startNode].push({
             to: link.nodeId,
-            cost: dist + WALK_PENALTY,
-            geometry: geometry
+            cost: dist + WALK_PENALTY,            
         });
     }
+    timing['buildStartLinks'] = now() - t0;
 
+    // Step 3: Add end walking links
+    t0 = now();
     if (!clonedGraph[endNode]) clonedGraph[endNode] = [];
     for (const link of findClosestRouteNodes(endCoord, routePack, WALK_TO_SAMPLE_LIMIT)) {
-        const { dist, geometry } = await getWalkingGeometry(link.coord, endCoord);
+        const dist = await getOSRMWalkingDistance(link.coord, endCoord);
         if (!clonedGraph[link.nodeId]) clonedGraph[link.nodeId] = [];
         clonedGraph[link.nodeId].push({
             to: endNode,
-            cost: dist + WALK_PENALTY,
-            geometry: geometry
+            cost: dist + WALK_PENALTY,            
         });
     }
+    timing['buildEndLinks'] = now() - t0;
 
+    // Step 4: Build node lookup
+    t0 = now();
     const nodeLookup = buildNodeLookup(routePack);
-    const { path, prev } = astar(routePack.routeGraph, startCoord, endCoord, nodeLookup, 0.5);
-    // const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);    
+    timing['buildNodeLookup'] = now() - t0;
 
+    // Step 5: A* pathfinding
+    t0 = now();
+    const { path, prev } = astar(clonedGraph, startCoord, endCoord, nodeLookup, 0.5);
+    // const { path, prev } = await dijkstra(clonedGraph, startNode, endNode);
+    timing['astar'] = now() - t0;
+
+    // Step 6: Convert path to coordinates
+    t0 = now();
     const coordinates = path.map(nodeId => {
         if (nodeId === startNode) return startCoord;
         if (nodeId === endNode) return endCoord;
 
         const [routeId, index] = nodeId.split('-');
         const route = routePack.routes.find(r => r.routeId === routeId);
-
         return route?.truncatedPath[parseInt(index)];
     });
-    
+    timing['pathToCoordinates'] = now() - t0;
+
+    // Final timing summary
+    console.table(timing);
+
     return { coordinates, path };
 }
 
@@ -74,20 +96,35 @@ function findClosestRouteNodes(coord: [number, number], routePack: RoutePack, li
     return all.sort((a, b) => a.distance - b.distance).slice(0, limit);
 }
 
-async function getWalkingGeometry(from: [number, number], to: [number, number]) {
-    const coordStr = [
-        [from[0], from[1]],
-        [to[0], to[1]]
-    ].map(([lat, lng]) => `${lng},${lat}`).join(';');
-    const url = `http://router.project-osrm.org/route/v1/bike/${coordStr}?overview=false`;
+async function getOSRMWalkingDistance(from: [number, number], to: [number, number]) {
+    // const coordStr = [
+    //     [from[0], from[1]],
+    //     [to[0], to[1]]
+    // ].map(([lat, lng]) => `${lng},${lat}`).join(';');
+    // const url = `http://router.project-osrm.org/route/v1/bike/${coordStr}?overview=false`;
 
-    const res = await fetch(url);
-    const json: any = await res.json();
+    // const res = await fetch(url);
+    // const json: any = await res.json();
 
-    return {
-        dist: json.routes[0].distance,
-        geometry: json.routes[0].geometry
-    };
+    // return json.routes[0].distance;
+
+    //Replace with haversine temporarily
+    const toRadians = (deg: number) => deg * (Math.PI / 180);
+    const R = 6371e3; // Earth radius in meters
+
+    const φ1 = toRadians(from[0]);
+    const φ2 = toRadians(to[0]);
+    const Δφ = toRadians(to[0] - from[0]);
+    const Δλ = toRadians(to[1] - from[1]);
+
+    const a = Math.sin(Δφ / 2) ** 2 +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) ** 2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+    await new Promise(res => setTimeout(res, 40));
+    return R * c;
 }
 
 export function mergePathLegs(path: string[]) {
