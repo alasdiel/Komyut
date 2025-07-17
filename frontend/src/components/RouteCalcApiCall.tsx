@@ -29,12 +29,13 @@ export function RouteCalcButton() {
 
     try {
       const response = await fetch(
-        'https://4a76qvkzyd.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route',
+        'https://3ant8fvf5i.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route',
         {
           method: 'POST',
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
           },
           body: JSON.stringify({ startPos, endPos })
         }

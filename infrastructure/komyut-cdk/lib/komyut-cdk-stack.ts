@@ -78,6 +78,9 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
+			defaultMethodOptions: {
+    			authorizationType: apigw.AuthorizationType.NONE // Disable auth
+			},
 			defaultCorsPreflightOptions: {
 				allowOrigins: apigw.Cors.ALL_ORIGINS, 
 				allowMethods: apigw.Cors.ALL_METHODS,
@@ -89,7 +92,7 @@ export class KomyutCdkStack extends cdk.Stack {
 				'X-Amz-Security-Token'
 				],
 			},
-			});
+		});
 
 		api.root.addResource('hello-world')
 			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
