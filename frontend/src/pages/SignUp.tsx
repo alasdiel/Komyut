@@ -32,7 +32,7 @@ function SignUp() {
 
   const checkUserExists = async (username: string) => {
     try {
-      // Replace with your actual API endpoint
+      // Replace with actual API endpoint
       const response = await fetch('/api/check-user', {
         method: 'POST',
         headers: {
@@ -77,7 +77,7 @@ function SignUp() {
 
     // If all validations pass, proceed with registration
     try {
-      // Replace with your actual registration API endpoint
+      // Replace with Actual registration API endpoint
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
@@ -92,7 +92,7 @@ function SignUp() {
 
       // Registration successful - redirect or show success message
       alert('Registration successful!');
-      // You might want to redirect here: router.push('/login');
+      //CHANGE THIS TO REDIRECT TO SIGN IN PAGE
     } catch{
       setErrors(prev => ({ ...prev, general: 'Registration failed. Please try again.' }));
     } finally {
@@ -103,9 +103,7 @@ function SignUp() {
   return (
     <div className="min-h-screen bg-orange-500 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        {/* Logo and Heading */}
         <div className="flex flex-col items-center mb-6">
-          {/* Replace with an <img src=""> if needed */}
           <div className="w-10 h-10 rounded-full bg-gray-300 mb-2"></div>
           <h1 className="text-2xl font-bold text-center text-blue-800">
             Sign up for Komyut!
