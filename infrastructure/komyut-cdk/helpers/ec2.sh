@@ -13,8 +13,14 @@ sudo yum install -y docker
 sudo systemctl start docker
 sudo usermod -a -G docker ec2-user
 
-echo "Setting up 10GB swap file..."
-sudo /bin/dd if=/dev/zero of=/var/swapfile bs=1M count=10240 status=progress
+echo "Waiting for /var to be ready..."
+while [ ! -d /var ]; do
+  echo "/var not ready, sleeping..."
+  sleep 2
+done
+
+echo "Setting up 20GB swap file..."
+sudo /bin/dd if=/dev/zero of=/var/swapfile bs=1M count=20480 status=progress
 sudo /sbin/mkswap /var/swapfile
 sudo chmod 600 /var/swapfile
 sudo /sbin/swapon /var/swapfile
@@ -36,7 +42,7 @@ echo "Extracting OSRM data..."
 tar -xvzf /home/ec2-user/osrm-data.tar.gz -C /home/ec2-user/data
 
 echo "Starting OSRM in Docker..."
-docker run -d -p 5000:5000 -v /home/ec2-user/data:/data osrm/osrm-backend osrm-routed --algorithm mld /data/philippines-latest.osrm > /home/ec2-user/osrm.log 2>&1
+docker run -t -i -p 5000:5000 -v /home/ec2-user/data:/data osrm/osrm-backend osrm-routed --algorithm mld /data/philippines-latest.osrm > /home/ec2-user/osrm.log 2>&1
 
 sleep 5
 echo "Appending Docker container logs to osrm.log..."
