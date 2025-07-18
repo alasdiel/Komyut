@@ -11,9 +11,18 @@ const MapComponent = () => {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://demotiles.maplibre.org/style.json',
-      center: [125.6088, 7.0647],
-      zoom: 8,
+      style: 'https://api.maptiler.com/maps/openstreetmap/style.json?key=E79wjmuo7MACxeX5KvXK',
+      center: [125.6088, 7.15],
+      zoom: 10,
+      minZoom: 8,
+      maxZoom: 14,
+      maxBounds: 
+      [
+
+      [125.204904, 6.795854], 
+      [125.892734, 7.516401], 
+
+      ]
     });
 
     return () => {
@@ -22,8 +31,8 @@ const MapComponent = () => {
   }, []);
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
-      <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+    <div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
+      <div ref={mapContainer} style={{ height: '85%', width: '85%' }} />
     </div>
   );
 };

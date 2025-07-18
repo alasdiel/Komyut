@@ -53,6 +53,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
         return {
             statusCode: 200,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+            },
             body: JSON.stringify({
                 legs,                
             })
@@ -61,6 +66,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         console.error(`[ROUTE HANDLER ERR]: ${err instanceof Error ? err.stack : err}`);
         return {
             statusCode: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+            },
             body: JSON.stringify({
                 error: `${err instanceof Error ? err.stack : err}`
             })
