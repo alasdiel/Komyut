@@ -7,6 +7,8 @@ import fetch from 'node-fetch';
 
 import * as msgp from '@msgpack/msgpack';
 
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+
 //Load from native filesystem
 export function loadRoutePack(inputDirectory: string): RoutePack | null {
     if (!fs.existsSync(inputDirectory)) {
@@ -229,7 +231,7 @@ export async function loadRoutePackFromS3Parallel(bucket: string, prefix: string
     }    
 }
 
-export async function laodRoutePackBundle(bucket: string, prefix: string): Promise<RoutePack | null> {
+export async function loadRoutePackBundle(bucket: string, prefix: string): Promise<RoutePack | null> {
     try {
         // First try CloudFront (NEW)
         console.log(`Attempting CloudFront load from ${prefix}/routepack.bundle`);

@@ -24,17 +24,14 @@ export class KomyutCdkStack extends cdk.Stack {
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
 
-		const fnTestLoadRoutePack = new lambdaNJS.NodejsFunction(this, 'TestLoadRoutePackFunction', {
-			entry: path.join(__dirname, '../lambda/findpath/test-routepack.ts'),
-			runtime: lambda.Runtime.NODEJS_20_X,
-			timeout: cdk.Duration.seconds(120)
-		});
-
 		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
-			entry: path.join(__dirname, '../lambda/findpath/findbestpath.ts'),
+			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			timeout: cdk.Duration.seconds(300),
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
+			environment: {
+				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
+			}
 		});
 		// In your CDK stack
 
@@ -56,10 +53,10 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
-			bucketName: `komyut-routepack-bucket`, 
+			bucketName: `komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
-			publicReadAccess: false,
+			publicReadAccess: false,						
 		});
 		// routePackBucket.grantRead(fnTestLoadRoutePack);
 		routePackBucket.grantRead(fnCalcPlan);

@@ -1,9 +1,11 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { laodRoutePackBundle, loadRoutePack, loadRoutePackFromS3, loadRoutePackFromS3Parallel } from "../../helpers/routepackLoader";
+import { loadRoutePackBundle, loadRoutePack, loadRoutePackFromS3, loadRoutePackFromS3Parallel } from "../../helpers/routepackLoader";
 import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
 
 let cachedRoutePack: RoutePack | null = null;
+
+const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
 
 export const handler: APIGatewayProxyHandler = async (event) => {
     try {
@@ -16,9 +18,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             console.log("COLD START, loading routepack");
             // cachedRoutePack = await loadRoutePackFromS3Parallel('komyut-routepack-bucket', 'routepack');
             const time1 = performance.now();
-            console.log(`start function laodRoutePackBundle`);
-            cachedRoutePack = await laodRoutePackBundle('komyut-routepack-bucket', 'routepack-bundle');
-            console.log(`laodRoutePackBundleFromS3 TOOK ${(performance.now() - time1)}ms`);
+            console.log(`start function loadRoutePackBundle`);
+            cachedRoutePack = await loadRoutePackBundle(`komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 'routepack-bundle');
+            console.log(`loadRoutePackBundle TOOK ${(performance.now() - time1)}ms`);
             
             if (!cachedRoutePack) {
                 console.error(`RoutePack failed to load`);
@@ -49,20 +51,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         const legs = await transformLegsForFrontend(mergedLegs, cachedRoutePack, startCoord, endCoord);       
         console.log(`transformLegsForFrontend TOOK ${(performance.now() - time4)}ms`);
 
-        //FOR KARLO:
-        /*
-            According to CloudWatch logs, loading RoutePack from S3 takes 12.2s which is fine,
-            I've found out that currently findBestPath() does indeed start but ApiGateway times out before it finishes,
-            you can dive in to the findBestPath(), and try pinpointing which functions inside findBestPath are taking too long kato langggg
-
-            To upload the routepack to AWS, use this command:
-            aws s3 cp "C:\Path\to\routepack\folder" s3://komyut-routepack-bucket/routepack-bundle --recursive
-
-            Ill send the RoutePack in bundle version sa VC chat
-
-            ayown lng thx
-        */
-
         return {
             statusCode: 200,
             headers: {
@@ -75,7 +63,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             })
         };
     } catch (err) {
-        console.error(`[ROUTE HANDLER ERR]: ${err}`);
+        console.error(`[ROUTE HANDLER ERR]: ${err instanceof Error ? err.stack : err}`);
         return {
             statusCode: 500,
             headers: {
@@ -84,7 +72,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
                 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
             },
             body: JSON.stringify({
-                error: `${err}`
+                error: `${err instanceof Error ? err.stack : err}`
             })
         };
     }

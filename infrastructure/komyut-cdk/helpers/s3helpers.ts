@@ -2,17 +2,26 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import fetch from 'node-fetch';
 
-const s3 = new S3Client({region: 'ap-southeast-1'}); // Changed region to 'ap-southeast-1' from 'ap-southeast-2'
-const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN!; // Updated to the new CloudFront domain
+function getS3Client(): S3Client {
+	const region = process.env.AWS_REGION;
+	if (!region) throw new Error('AWS_REGION is not set');
+	return new S3Client({ region });
+}
+
+function getCloudfrontDomain(): string {
+	const domain = process.env.CLOUDFRONT_DOMAIN;
+	if (!domain) throw new Error('CLOUDFRONT_DOMAIN is not set');
+	return domain;
+}
 
 // S3 HELPER FUNCTIONS (OLD)
 export async function readS3Text(bucket: string, key: string): Promise<string> {
-    const res = await s3.send(new GetObjectCommand({Bucket: bucket, Key: key}));
+    const res = await getS3Client().send(new GetObjectCommand({Bucket: bucket, Key: key}));
     return (await streamToString(res.Body as Readable));
 }
 
 export async function readS3Buffer(bucket: string, key: string): Promise<Buffer> {
-    const res = await s3.send(new GetObjectCommand({Bucket: bucket, Key: key}));
+    const res = await getS3Client().send(new GetObjectCommand({Bucket: bucket, Key: key}));    
     return (await streamToBuffer(res.Body as Readable));
 }
 
@@ -32,13 +41,13 @@ function streamToString(stream: Readable): Promise<string> {
 
 // CLOUDFRONT HELPER FUNCTIONS (NEW)
 export async function readCloudFrontText(path: string): Promise<string> {
-    const response = await fetch(`${CLOUDFRONT_DOMAIN}/${path}`);
+    const response = await fetch(`${getCloudfrontDomain()}/${path}`);
     if (!response.ok) throw new Error(`CloudFront failed: ${response.statusText}`);
     return await response.text();
 }
 
 export async function readCloudFrontBuffer(path: string): Promise<Buffer> {
-    const response = await fetch(`${CLOUDFRONT_DOMAIN}/${path}`);
+    const response = await fetch(`${getCloudfrontDomain()}/${path}`);
     if (!response.ok) throw new Error(`CloudFront failed: ${response.statusText}`);
     return Buffer.from(await response.arrayBuffer());
 }
