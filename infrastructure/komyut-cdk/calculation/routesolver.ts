@@ -97,34 +97,34 @@ function findClosestRouteNodes(coord: [number, number], routePack: RoutePack, li
 }
 
 async function getOSRMWalkingDistance(from: [number, number], to: [number, number]) {
-    // const coordStr = [
-    //     [from[0], from[1]],
-    //     [to[0], to[1]]
-    // ].map(([lat, lng]) => `${lng},${lat}`).join(';');
-    // const url = `http://router.project-osrm.org/route/v1/bike/${coordStr}?overview=false`;
+    const coordStr = [
+        [from[0], from[1]],
+        [to[0], to[1]]
+    ].map(([lat, lng]) => `${lng},${lat}`).join(';');
+    const url = `http://${process.env.EC2_OSRM_PRIVATE_IP}:5000/route/v1/bike/${coordStr}?overview=false`;
 
-    // const res = await fetch(url);
-    // const json: any = await res.json();
+    const res = await fetch(url);
+    const json: any = await res.json();
 
-    // return json.routes[0].distance;
+    return json.routes[0].distance;
 
     //Replace with haversine temporarily
-    const toRadians = (deg: number) => deg * (Math.PI / 180);
-    const R = 6371e3; // Earth radius in meters
+    // const toRadians = (deg: number) => deg * (Math.PI / 180);
+    // const R = 6371e3; // Earth radius in meters
 
-    const φ1 = toRadians(from[0]);
-    const φ2 = toRadians(to[0]);
-    const Δφ = toRadians(to[0] - from[0]);
-    const Δλ = toRadians(to[1] - from[1]);
+    // const φ1 = toRadians(from[0]);
+    // const φ2 = toRadians(to[0]);
+    // const Δφ = toRadians(to[0] - from[0]);
+    // const Δλ = toRadians(to[1] - from[1]);
 
-    const a = Math.sin(Δφ / 2) ** 2 +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) ** 2;
+    // const a = Math.sin(Δφ / 2) ** 2 +
+    //           Math.cos(φ1) * Math.cos(φ2) *
+    //           Math.sin(Δλ / 2) ** 2;
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    // const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    await new Promise(res => setTimeout(res, 40));
-    return R * c;
+    // await new Promise(res => setTimeout(res, 40));
+    // return R * c;
 }
 
 export function mergePathLegs(path: string[]) {
@@ -175,15 +175,15 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
 }
 
 async function getOSRMWalkingPath(from: [number, number], to: [number, number]): Promise<[number, number][]> {
-    // const url = `http://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-    // const res = await fetch(url);
-    // const data: any = await res.json();
+    const url = `http://${process.env.EC2_OSRM_PRIVATE_IP}:5000/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data: any = await res.json();
 
-    // if (data?.routes?.[0]?.geometry?.coordinates) {
-    //     return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
-    // }
+    if (data?.routes?.[0]?.geometry?.coordinates) {
+        return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
+    }
 
-    await new Promise(res => setTimeout(res, 40));
+    // await new Promise(res => setTimeout(res, 40));
 
     return [from, to]; // fallback to straight line
 }

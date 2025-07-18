@@ -18,6 +18,40 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 💿 DYNAMODB TABLES
 
+		// ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS
+		// VPC
+		const vpc = new ec2.Vpc(this, 'KomyutVPC', {
+			maxAzs: 2,
+			subnetConfiguration: [
+				{
+					cidrMask: 24,
+					name: 'private-subnet',
+					subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+				},
+				{
+					cidrMask: 24,
+					name: 'public-subnet',
+					subnetType: ec2.SubnetType.PUBLIC
+				},
+			],
+		});
+
+		// Security Groups
+		const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
+			vpc,
+			allowAllOutbound: true,
+			description: 'Allow Lambdas to access OSRM'
+		});
+		const sgLambda = new ec2.SecurityGroup(this, 'KomyutSG_lambda', {
+			vpc,
+			allowAllOutbound: true
+		});
+		sgEC2.addIngressRule(sgLambda, ec2.Port.tcp(5000), 'Allow Lambdas to access OSRM');
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
+
+		// [[ EC2 HAS TO BE SET UP MANUALLY! ]]
+
 		// ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
 		// ANTHONY'S WORK
 		const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
@@ -32,7 +66,14 @@ export class KomyutCdkStack extends cdk.Stack {
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 			environment: {
 				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
-			}
+				EC2_OSRM_PRIVATE_IP: process.env.EC2_OSRM_PRIVATE_IP!,
+			},			
+
+			vpc: vpc,
+			vpcSubnets: {
+				subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+			},
+			securityGroups: [sgLambda],
 		});		
 
 		// KARLO'S WORK
@@ -71,46 +112,7 @@ export class KomyutCdkStack extends cdk.Stack {
 		},
 		defaultRootObject: 'routepack-bundle/routepack.json',
 		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
-		});		
-
-		// ⚡ EC2 INSTANCES
-		// Define default VPC
-		const vpc = ec2.Vpc.fromLookup(this, 'DefaultVPC', {isDefault: true});
-		// Security Group
-		const secuGroup = new ec2.SecurityGroup(this, 'OSRMSecurityGroup', {
-			vpc,
-			allowAllOutbound: true,
-			description: 'Allow SSH and OSRM HTTP access',
-		});
-		secuGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'SSH');
-		secuGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'OSRM server');
-
-		// Commands to run
-		const userData = ec2.UserData.forLinux();
-		userData.addCommands(
-			'sudo yum update -y',
-			'sudo yum groupinstall "Development Tools" -y',
-			'sudo yum install -y git cmake gcc-c++ make boost-devel tbb-devel libxml2-devel lua-devel unzip wget',
-			'git clone https://github.com/Project-OSRM/osrm-backend.git',
-			'cd osrm-backend',
-			'mkdir build && cd build',
-			'cmake .. -DCMAKE_BUILD_TYPE=Release',
-			'cmake --build .',
-			'cd ..',
-			'wget https://download.geofabrik.de/asia/philippines-latest.osm.pbf',
-			'./build/osrm-extract -p profiles/foot.lua philippines-latest.osm.pbf',
-			'./build/osrm-partition philippines-latest.osrm',
-			'./build/osrm-customize philippines-latest.osrm',
-			'nohup ./build/osrm-routed --algorithm mld philippines-latest.osrm --max-matching-size=1000 --max-table-size=1000 --max-viaroute-size=1000 -p 5000 &'
-		);
-
-		new ec2.Instance(this, 'OSRMInstanceServer', {
-			vpc, instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.SMALL),
-			machineImage: ec2.MachineImage.latestAmazonLinux2023(),
-			securityGroup: secuGroup,
-			keyName: 'osrm-keypair',
-			userData: userData
-		});
+		});				
 
 		// 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
