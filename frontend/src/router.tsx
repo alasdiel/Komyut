@@ -32,6 +32,7 @@ const router = createBrowserRouter([
     path: '/sign-up',
     element: <SignUp />,
   },
+  
   /*
     #TODO: remove in prod
     For future reference:

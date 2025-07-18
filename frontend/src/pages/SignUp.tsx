@@ -1,46 +1,43 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react'; // Import eye icons from Lucide React
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import PasswordInput from '@/components/PasswordInput'; // Adjust the path as needed
+
 function SignUp() {
   const [formData, setFormData] = useState({
     accountName: '',
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
+
   const [errors, setErrors] = useState({
     username: '',
     password: '',
-    general: ''
+    general: '',
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear error when user types
+
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
   const checkUserExists = async (username: string) => {
     try {
-      // Replace with actual API endpoint
       const response = await fetch('/api/check-user', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username }),
       });
-      
       const data = await response.json();
       return data.exists;
     } catch (error) {
@@ -54,47 +51,41 @@ function SignUp() {
     setIsSubmitting(true);
     setErrors({ username: '', password: '', general: '' });
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
-      setErrors(prev => ({ ...prev, password: 'Passwords do not match' }));
+      setErrors((prev) => ({ ...prev, password: 'Passwords do not match' }));
       setIsSubmitting(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setErrors(prev => ({ ...prev, password: 'Password must be at least 6 characters' }));
+      setErrors((prev) => ({ ...prev, password: 'Password must be at least 6 characters' }));
       setIsSubmitting(false);
       return;
     }
 
-    // Check if user exists
     const userExists = await checkUserExists(formData.username);
     if (userExists) {
-      setErrors(prev => ({ ...prev, username: 'Username already taken' }));
+      setErrors((prev) => ({ ...prev, username: 'Username already taken' }));
       setIsSubmitting(false);
       return;
     }
 
-    // If all validations pass, proceed with registration
     try {
-      // Replace with Actual registration API endpoint
       const response = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
+      if (!response.ok) throw new Error('Registration failed');
 
-      // Registration successful - redirect or show success message
       alert('Registration successful!');
-      //CHANGE THIS TO REDIRECT TO SIGN IN PAGE
-    } catch{
-      setErrors(prev => ({ ...prev, general: 'Registration failed. Please try again.' }));
+      // redirect logic here, like: navigate("/sign-in")
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Registration failed. Please try again.',
+      }));
     } finally {
       setIsSubmitting(false);
     }
@@ -110,12 +101,9 @@ function SignUp() {
           </h1>
         </div>
 
-        {/* Form */}
         <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Create Account Name
-            </label>
+            <label className="text-sm font-medium text-gray-700">Create Account Name</label>
             <input
               type="text"
               name="accountName"
@@ -128,15 +116,15 @@ function SignUp() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Create Username
-            </label>
+            <label className="text-sm font-medium text-gray-700">Create Username</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className={`mt-1 w-full rounded-md border ${errors.username ? 'border-red-500' : 'border-gray-300'} px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
+              className={`mt-1 w-full rounded-md border ${
+                errors.username ? 'border-red-500' : 'border-gray-300'
+              } px-3 py-2 text-sm focus:border-blue-500 focus:outline-none`}
               required
             />
             {errors.username && (
@@ -144,68 +132,23 @@ function SignUp() {
             )}
           </div>
 
-          <div className="relative">
-            <label className="text-sm font-medium text-gray-700">
-              Create Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`mt-1 w-full rounded-md border ${errors.password ? 'border-red-500' : 'border-gray-300'} px-3 py-2 text-sm focus:border-blue-500 focus:outline-none pr-10`}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center mt-1"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
-            </div>
-          </div>
+          <PasswordInput
+            label="Create Password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            error={errors.password}
+          />
 
-          <div className="relative">
-            <label className="text-sm font-medium text-gray-700">
-              Repeat Password
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`mt-1 w-full rounded-md border ${errors.password ? 'border-red-500' : 'border-gray-300'} px-3 py-2 text-sm focus:border-blue-500 focus:outline-none pr-10`}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center mt-1"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-500" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-            )}
-          </div>
+          <PasswordInput
+            label="Repeat Password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            error={errors.password}
+          />
 
-          {errors.general && (
-            <p className="text-sm text-red-500">{errors.general}</p>
-          )}
+          {errors.general && <p className="text-sm text-red-500">{errors.general}</p>}
 
           <Button
             type="submit"
@@ -214,9 +157,9 @@ function SignUp() {
           >
             {isSubmitting ? 'Creating Account...' : 'Create New Account!'}
           </Button>
+
           <div className="text-sm text-center text-blue-600 hover:underline">
-            <Link to="/sign-in"> Already have an account? Login here!
-            </Link>
+            <Link to="/sign-in">Already have an account? Login here!</Link>
           </div>
         </form>
       </div>
