@@ -8,7 +8,7 @@ function SignIn() {
         <div className="flex flex-col items-center mb-6">
           <div className="w-10 h-10 rounded-full bg-gray-300 mb-2"></div>
           <h1 className="text-2xl font-bold text-center text-blue-800">
-            Sign up for Komyut!
+            Sign In to Komyut!
           </h1>
         </div>
 
