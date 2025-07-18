@@ -6,6 +6,7 @@ import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 import * as path from 'path';
 
@@ -32,8 +33,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			environment: {
 				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
 			}
-		});
-		// In your CDK stack
+		});		
 
 		// KARLO'S WORK
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
@@ -71,6 +71,45 @@ export class KomyutCdkStack extends cdk.Stack {
 		},
 		defaultRootObject: 'routepack-bundle/routepack.json',
 		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
+		});		
+
+		// ⚡ EC2 INSTANCES
+		// Define default VPC
+		const vpc = ec2.Vpc.fromLookup(this, 'DefaultVPC', {isDefault: true});
+		// Security Group
+		const secuGroup = new ec2.SecurityGroup(this, 'OSRMSecurityGroup', {
+			vpc,
+			allowAllOutbound: true,
+			description: 'Allow SSH and OSRM HTTP access',
+		});
+		secuGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'SSH');
+		secuGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'OSRM server');
+
+		// Commands to run
+		const userData = ec2.UserData.forLinux();
+		userData.addCommands(
+			'sudo yum update -y',
+			'sudo yum groupinstall "Development Tools" -y',
+			'sudo yum install -y git cmake gcc-c++ make boost-devel tbb-devel libxml2-devel lua-devel unzip wget',
+			'git clone https://github.com/Project-OSRM/osrm-backend.git',
+			'cd osrm-backend',
+			'mkdir build && cd build',
+			'cmake .. -DCMAKE_BUILD_TYPE=Release',
+			'cmake --build .',
+			'cd ..',
+			'wget https://download.geofabrik.de/asia/philippines-latest.osm.pbf',
+			'./build/osrm-extract -p profiles/foot.lua philippines-latest.osm.pbf',
+			'./build/osrm-partition philippines-latest.osrm',
+			'./build/osrm-customize philippines-latest.osrm',
+			'nohup ./build/osrm-routed --algorithm mld philippines-latest.osrm --max-matching-size=1000 --max-table-size=1000 --max-viaroute-size=1000 -p 5000 &'
+		);
+
+		new ec2.Instance(this, 'OSRMInstanceServer', {
+			vpc, instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.SMALL),
+			machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+			securityGroup: secuGroup,
+			keyName: 'osrm-keypair',
+			userData: userData
 		});
 
 		// 🚦 APIGATEWAY DEFINITION
