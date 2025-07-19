@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from "aws-lambda";
 import { loadRoutePackBundle, loadRoutePack, loadRoutePackFromS3, loadRoutePackFromS3Parallel } from "../../helpers/routepackLoader";
 import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
+import { CORS_HEADERS } from "../../lib/constants/cors-config";
 
 let cachedRoutePack: RoutePack | null = null;
 
@@ -53,11 +54,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
         return {
             statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
-                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            },
+            headers: CORS_HEADERS, // Allow CORS for frontend
             body: JSON.stringify({
                 legs,                
             })
@@ -66,11 +63,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         console.error(`[ROUTE HANDLER ERR]: ${err instanceof Error ? err.stack : err}`);
         return {
             statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*', // Allow CORS for frontend
-                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            },
+            headers: CORS_HEADERS, // Allow CORS for frontend
             body: JSON.stringify({
                 error: `${err instanceof Error ? err.stack : err}`
             })

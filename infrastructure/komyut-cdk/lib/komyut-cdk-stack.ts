@@ -10,6 +10,7 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import { CORS_CONFIG } from './constants/cors-config';
 
 import * as path from 'path';
 import * as fs from 'fs';
@@ -155,21 +156,8 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		//#region 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
-			defaultMethodOptions: {
-    			authorizationType: apigw.AuthorizationType.NONE // Disable auth
-			},
-			defaultCorsPreflightOptions: {
-				allowOrigins: apigw.Cors.ALL_ORIGINS, 
-				allowMethods: apigw.Cors.ALL_METHODS,
-				allowHeaders: [
-				'Content-Type',
-				'X-Amz-Date',
-				'Authorization',
-				'X-Api-Key',
-				'X-Amz-Security-Token'
-				],
-			},
-		});		
+			defaultCorsPreflightOptions: CORS_CONFIG
+		});
 
 		api.root.addResource('hello-world')
 			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
