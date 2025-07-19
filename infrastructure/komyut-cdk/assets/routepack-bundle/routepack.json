@@ -1,0 +1,27 @@
+{
+	"includedRoutes": [
+		"bangkal",
+		"bunawan_buhangin",
+		"bunawan_sasa",
+		"calinan",
+		"catalunan_grande",
+		"ecoland",
+		"emily_homes",
+		"maa_bankerohan",
+		"matina",
+		"mintal",
+		"sasa_jp_laurel",
+		"toril",
+		"waan"
+	],
+	"buildID": "MCUAHB91",
+	"dateBuilt": "2025-07-08T08:49:47.317Z",
+	"compileParameters": {
+		"MAPPING_RADIUS": 1,
+		"TRANSFER_RADIUS": 500,
+		"SPATIAL_TOLERANCE": 500,
+		"CONTINUE_REWARD": -200,
+		"TRANSFER_PENALTY": 10000,
+		"TRUNCATION_INTERVAL": 200
+	}
+}

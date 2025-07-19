@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNJS from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
@@ -55,11 +56,13 @@ export class KomyutCdkStack extends cdk.Stack {
 		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
 		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
 
-		// EC2
-		const ec2Role = new iam.Role(this, 'Ec2Role', { assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'), });
+		// EC2		
 		const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-			machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+			// machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+			machineImage: ec2.MachineImage.genericLinux({
+				'ap-southeast-2': 'ami-0423bb1d0e9ecb96b'
+			}),
 			blockDevices: [{
 				deviceName: '/dev/xvda',
 				volume: ec2.BlockDeviceVolume.ebs(30),
@@ -69,61 +72,13 @@ export class KomyutCdkStack extends cdk.Stack {
 			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
 			securityGroup: sgEC2,
 
-			keyName: 'osrm-keypair',
-			role: ec2Role
+			keyName: 'osrm-keypair',			
 		});
 		new ssm.StringParameter(this, 'KomyutEc2PrivateIP', { parameterName: '/komyut/ec2/private-ip', stringValue: ec2Instance.instancePrivateIp });
 		ec2Instance.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));		
 		ec2Instance.addUserData(
 			fs.readFileSync(path.join(__dirname, '../helpers/ec2.sh'), 'utf-8').replace(/\${ROUTEPACK_BUCKET_SUFFIX}/g, process.env.ROUTEPACK_BUCKET_SUFFIX!)
 		);
-		// ec2Instance.userData.addCommands(
-		// 	//Redirect all output to both a log file and the system logger
-		// 	`exec > >(tee -a /home/ec2-user/init.log | logger -t user-data -s) 2>&1`,
-		// 	`set -x  # Print each command before executing`,
-
-		// 	`echo "===== STARTING EC2 INIT SCRIPT ====="`,
-
-		// 	`echo "Updating packages..."`,
-		// 	`sudo yum update -y`,
-
-		// 	`echo "Installing Docker..."`,
-		// 	`sudo yum install -y docker`,
-		// 	`sudo systemctl start docker`,
-		// 	`sudo usermod -a -G docker ec2-user`,
-
-		// 	`echo "Setting up 10GB swap file..."`,
-		// 	`sudo /bin/dd if=/dev/zero of=/var/swapfile bs=1M count=10240 status=progress`,
-		// 	`sudo /sbin/mkswap /var/swapfile`,
-		// 	`sudo chmod 600 /var/swapfile`,
-		// 	`sudo /sbin/swapon /var/swapfile`,
-		// 	`echo "Swap setup complete"`,
-
-		// 	`echo "Creating data directory..."`,
-		// 	`mkdir -p /home/ec2-user/data`,
-
-		// 	`echo "Waiting for osrm-data.tar.gz in S3..."`,
-		// 	`while ! aws s3 ls s3://komyut-permanent-${process.env.ROUTEPACK_BUCKET_SUFFIX}/osrm-data.tar.gz; do`,
-		// 	`echo "File not yet available... waiting 30s"`,
-		// 	`sleep 30`,
-		// 	`done`,
-
-		// 	`echo "File found! Downloading..."`,
-		// 	`aws s3 cp s3://komyut-permanent-${process.env.ROUTEPACK_BUCKET_SUFFIX}/osrm-data.tar.gz /home/ec2-user/osrm-data.tar.gz`,
-
-		// 	`echo "Extracting OSRM data..."`,
-		// 	`tar -xvzf /home/ec2-user/osrm-data.tar.gz -C /home/ec2-user/data`,
-
-		// 	`echo "Starting OSRM in Docker..."`,
-		// 	`docker run -d -p 5000:5000 -v /home/ec2-user/data:/data osrm/osrm-backend osrm-routed --algorithm mld /data/philippines-latest.osrm > /home/ec2-user/osrm.log 2>&1`,
-
-		// 	`# Optional: wait a few seconds then append container logs to osrm.log`,
-		// 	`sleep 5`,
-		// 	`echo "Appending Docker container logs to osrm.log..."`,
-		// 	`docker logs $(docker ps -q --filter ancestor=osrm/osrm-backend) >> /home/ec2-user/osrm.log`,
-
-		// 	`echo "===== EC2 INIT SCRIPT COMPLETE ====="`
-		// );		
 		//#endregion
 
 		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
@@ -177,13 +132,12 @@ export class KomyutCdkStack extends cdk.Stack {
 			autoDeleteObjects: true,
 			publicReadAccess: false,						
 		});
-		const permanentBucket = new s3.Bucket(this, 'PermanentBucket', {
-			bucketName: `komyut-permanent-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 
-			removalPolicy: cdk.RemovalPolicy.RETAIN,			
-			publicReadAccess: false,						
-		});	
-		routePackBucket.grantRead(fnCalcPlan);
-		permanentBucket.grantRead(ec2Role);
+		new s3deploy.BucketDeployment(this, 'RoutePackBundleData', {
+			destinationBucket: routePackBucket,
+			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
+			destinationKeyPrefix: 'routepack-bundle',
+		});		
+		routePackBucket.grantRead(fnCalcPlan);		
 		//#endregion
 
 		//#region ☁️ CLOUDFRONT DISTRIBUTION
