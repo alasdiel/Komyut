@@ -4,11 +4,18 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNJS from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CORS_CONFIG } from './constants/cors-config';
 
 import * as path from 'path';
+import * as fs from 'fs';
+
+import { CONSTS } from "@shared/consts";
 
 export class KomyutCdkStack extends cdk.Stack {
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -18,7 +25,64 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 💿 DYNAMODB TABLES
 
-		// ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
+		//#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
+		// VPC
+		const vpc = new ec2.Vpc(this, 'KomyutVPC', {
+			maxAzs: 2,
+			subnetConfiguration: [
+				{
+					cidrMask: 24,
+					name: 'private-subnet',
+					subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+				},
+				{
+					cidrMask: 24,
+					name: 'public-subnet',
+					subnetType: ec2.SubnetType.PUBLIC
+				},
+			],
+		});
+
+		// Security Groups
+		const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
+			vpc,
+			allowAllOutbound: true,
+			description: 'Allow Lambdas to access OSRM'
+		});
+		const sgLambda = new ec2.SecurityGroup(this, 'KomyutSG_lambda', {
+			vpc,
+			allowAllOutbound: true
+		});
+		sgEC2.addIngressRule(sgLambda, ec2.Port.tcp(5000), 'Allow Lambdas to access OSRM');
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
+
+		// EC2		
+		const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
+			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
+			// machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+			machineImage: ec2.MachineImage.genericLinux({
+				'ap-southeast-2': 'ami-0423bb1d0e9ecb96b'
+			}),
+			blockDevices: [{
+				deviceName: '/dev/xvda',
+				volume: ec2.BlockDeviceVolume.ebs(30),
+			}],
+
+			vpc,
+			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+			securityGroup: sgEC2,
+
+			keyName: 'osrm-keypair',			
+		});
+		new ssm.StringParameter(this, 'KomyutEc2PrivateIP', { parameterName: '/komyut/ec2/private-ip', stringValue: ec2Instance.instancePrivateIp });
+		ec2Instance.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));		
+		ec2Instance.addUserData(
+			fs.readFileSync(path.join(__dirname, '../helpers/ec2.sh'), 'utf-8').replace(/\${ROUTEPACK_BUCKET_SUFFIX}/g, process.env.ROUTEPACK_BUCKET_SUFFIX!)
+		);
+		//#endregion
+
+		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
 		// ANTHONY'S WORK
 		const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
 			entry: path.join(__dirname, '../lambda/helloworld/helloworld.ts'),
@@ -32,9 +96,18 @@ export class KomyutCdkStack extends cdk.Stack {
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 			environment: {
 				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
-			}
-		});
-		// In your CDK stack
+			},			
+
+			vpc: vpc,
+			vpcSubnets: {
+				subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+			},
+			securityGroups: [sgLambda],
+		});		
+		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
+			actions: ['ssm:GetParameter'],
+			resources: ['*']
+		}))
 
 		// KARLO'S WORK
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
@@ -51,18 +124,24 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/signup/signup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
+		//#endregion
 
-		// 🪣 S3 BUCKETS
+		//#region 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
 			bucketName: `komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 			publicReadAccess: false,						
 		});
-		// routePackBucket.grantRead(fnTestLoadRoutePack);
-		routePackBucket.grantRead(fnCalcPlan);
+		new s3deploy.BucketDeployment(this, 'RoutePackBundleData', {
+			destinationBucket: routePackBucket,
+			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
+			destinationKeyPrefix: 'routepack-bundle',
+		});		
+		routePackBucket.grantRead(fnCalcPlan);		
+		//#endregion
 
-		// ☁️ CLOUDFRONT DISTRIBUTION
+		//#region ☁️ CLOUDFRONT DISTRIBUTION
 		const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
 		defaultBehavior: {
 			origin: new origins.S3Origin(routePackBucket),
@@ -72,9 +151,10 @@ export class KomyutCdkStack extends cdk.Stack {
 		},
 		defaultRootObject: 'routepack-bundle/routepack.json',
 		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
-		});
+		});		
+		//#endregion		
 
-		// 🚦 APIGATEWAY DEFINITION
+		//#region 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
 			defaultCorsPreflightOptions: CORS_CONFIG
 		});
@@ -88,5 +168,6 @@ export class KomyutCdkStack extends cdk.Stack {
 		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
 			proxy: true, // Added to allow the Lambda func to handle the request body directly
 		}));
+		//#endregion
 	}
 }
