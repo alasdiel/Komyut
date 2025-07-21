@@ -5,13 +5,14 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://api.maptiler.com/maps/openstreetmap/style.json?key=E79wjmuo7MACxeX5KvXK',
+      style: stylejson,
       center: [125.6088, 7.15],
       zoom: 10,
       minZoom: 8,
@@ -32,7 +33,7 @@ const MapComponent = () => {
 
   return (
     <div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
-      <div ref={mapContainer} style={{ height: '85%', width: '85%' }} />
+      <div ref={mapContainer} style={{ height: '95%', width: '95%' }} />
     </div>
   );
 };
