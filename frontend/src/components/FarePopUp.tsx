@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, BusIcon, ArrowUpIcon } from 'lucide-react';
+import Draggable from 'react-draggable';
+
 
 interface JeepneyLeg {
   name: string;
@@ -17,6 +19,9 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [dragPosition, setDragPosition] = useState(0);
   const [startY, setStartY] = useState(0);
+
+  // Reference for the draggable element
+  const dragRef = useRef(null);
 
   // Calculate the total fare
   const totalFare = legs.reduce((sum, leg) => sum + leg.fare, 0);
@@ -58,13 +63,14 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="absolute top-4 right-4 p-3 rounded-lg shadow-md z-10 hover:shadow-lg transition-shadow"
       >
-        {isOpen ? '' : <BusIcon className="w-6 h-6" />}
+        {isOpen ? <BusIcon className="w-6 h-6 text-gray-500"/> : <BusIcon className="w-6 h-6" />}
       </button>
 
       {/* Panel */}
       {isOpen && (
-        <div className="fixed top-0 right-0 h-full w-112 bg-white shadow-lg z-20 border border-gray-200 rounded-l-lg flex flex-col transform transition-all duration-300 ease-out origin-right translate-x-0">
-          <div className="p-6 h-full overflow-y-auto pb-6">
+        <Draggable nodeRef={dragRef} handle=".popup">
+        <div ref={dragRef} className="fixed right-4 w-112 bg-white shadow-[0_20px_20px_-5px_rgba(0,0,0,0.5)] z-20 border border-orange-400 rounded-lg flex flex-col transform transition-all duration-300 ease-out origin-right translate-x-0">
+          <div className="popup p-6 h-full overflow-y-auto pb-6">
             <button 
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-black hover:text-gray-700 transition-colors"
@@ -88,20 +94,21 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                       />
                       <span className="text-lg font-epilogue">{leg.name}</span>
                     </div>
-                    <span className="text-lg font-semibold font-epilogue">₱{leg.fare}</span>
+                    <span className="text-lg font-semibold font-epilogue ">₱ {leg.fare}</span>
                   </div>
                 ))}
               </div>
 
                 <div className="bg-orange-500 text-white p-5 w-full mt-4">
                     <div className="flex justify-between max-w-md mx-auto">
-                    <span className="text-2xl font-bold font-epilogue">TOTAL</span>
-                    <span className="text-2xl font-bold font-epilogue">₱{totalFare}</span>
+                    <span className="text-2xl font-bold font-epilogue">TOTAL FARE</span>
+                    <span className="text-2xl font-bold font-epilogue">₱ {totalFare}</span>
                     </div>
                 </div>
             </div>
           </div>
         </div>
+        </Draggable>
       )}
     </div>
   );
@@ -151,15 +158,15 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                       />
                       <span className="font-medium font-epilogue">{leg.name}</span>
                     </div>
-                    <span className="font-medium font-epilogue">₱{leg.fare}</span>
+                    <span className="font-medium font-epilogue">₱ {leg.fare}</span>
                   </div>
                 ))}
               </div>
 
               <div className="bg-orange-500 text-white p-4 w-full mt-4">
                 <div className="flex justify-between max-w-md mx-auto">
-                    <span className="font-bold text-2xl">TOTAL</span>
-                    <span className="font-bold text-2xl">₱{totalFare}</span>
+                    <span className="font-bold text-2xl">TOTAL FARE</span>
+                    <span className="font-bold text-2xl">₱ {totalFare}</span>
                 </div>
               </div>
             </div>
