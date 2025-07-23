@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, CarFrontIcon, BusIcon, ArrowUpIcon } from 'lucide-react';
+import { X, BusIcon, ArrowUpIcon } from 'lucide-react';
 
 interface JeepneyLeg {
   name: string;
