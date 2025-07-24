@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { Username, Password } from '@/components/Authentication/InputFields.tsx'
+
 
 function SignIn() {
   return (
@@ -13,33 +15,14 @@ function SignIn() {
         </div>
 
         <form className="flex flex-col space-y-4">
-          <div>
-            <label htmlFor="username" className="text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            />
-          </div>
+        
+          <Username />
 
-          <div>
-            <label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-
+          <Password />
+        
           <Button
             type="submit"
-            className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-full"
+   className="w-full mt-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 rounded-full"
           >
             Sign In
           </Button>
@@ -48,8 +31,8 @@ function SignIn() {
             Create a new Komyut Account
           </Link>
         </form>
-      </div>
     </div>
+  </div>
   );
 }
 
