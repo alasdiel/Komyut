@@ -2,6 +2,7 @@ import Navbar from "./components/AppNavbar";
 import Footer from "./components/AppFooter";
 import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
+import OurWork from "./components/OurWorkSection";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <main className="flex-grow p-6">
         <HeroSection />
         <AboutSection />
+        <OurWork />
       </main>
 
       {/*TODO: Our Work Section*/}
