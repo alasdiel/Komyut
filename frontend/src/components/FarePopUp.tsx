@@ -130,15 +130,19 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
           onClick={() => setIsOpen(false)}
         >
           <div 
-            className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 transition-transform ${dragPosition > 0 ? '' : 'transform translate-y-0'}`}
-            style={{ transform: `translateY(${dragPosition}px)` }}
+            className={`absolute border-t border-orange-400 bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 transition-transform ${dragPosition > 0 ? '' : 'transform translate-y-0'}`}
+            style=
+            {{ transform: `translateY(${dragPosition}px)`,
+              opacity: 1 - (dragPosition / 200),
+
+            }}
             onClick={(e) => e.stopPropagation()}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             {/* Drag handling */}
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-4 active:cursor-grabbing" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
               <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
             </div>
 
