@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, BusIcon, ArrowUpIcon } from 'lucide-react';
 import Draggable from 'react-draggable';
+import jeepneyImage from '../assets/jeepney.png';
 
 
 interface JeepneyLeg {
@@ -88,7 +89,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                   <div key={index} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-3">
                       <img 
-                        src="https://cdnb.artstation.com/p/assets/images/images/009/744/673/large/nica-jan-alvarez-pinoy-pride-short-boi.jpg?1520644862" // Change later, image is placeholder
+                        src={jeepneyImage} 
                         alt="Jeepney" 
                         className="w-16 h-10"
                       />
@@ -156,7 +157,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                   <div key={index} className="flex items-center justify-between ">
                     <div className="flex items-center gap-2">
                       <img 
-                        src="https://cdnb.artstation.com/p/assets/images/images/009/744/673/large/nica-jan-alvarez-pinoy-pride-short-boi.jpg?1520644862" // Change later, image is placeholder
+                        src={jeepneyImage} 
                         alt="Jeepney" 
                         className="w-12 h-8"
                       />
