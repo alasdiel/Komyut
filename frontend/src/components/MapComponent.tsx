@@ -29,7 +29,7 @@ const MapComponent = () => {
 
 	//click boilerplate
 	const handleClick = async () => {
-		const response = await fetch("https://stjfocjqw2.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route",
+		const response = await fetch(import.meta.env.ROUTECALC_API_CALL,
 			{
 				method: 'POST',
 				mode: 'cors',
