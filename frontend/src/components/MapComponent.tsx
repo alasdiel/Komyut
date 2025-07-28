@@ -8,10 +8,20 @@ interface Position {
 	lng: number;
 }
 
+interface RouteLeg {
+	type: string;
+	routeId: string;
+	coordinates: [number, number][];
+}
+
+interface RouteData {
+	legs: RouteLeg[];
+}
+
 const MapComponent = () => {
 	const [startPos, setStartPos] = useState<Position>({ lat: 7.095888, lng: 125.505776 });
 	const [endPos, setEndPos] = useState<Position>({ lat: 7.120814, lng: 125.623431 });
-	const [routeData, setRouteData] = useState<any>(null);
+	const [routeData, setRouteData] = useState<RouteData | null>(null);
 
 	const mapContainer = useRef<HTMLDivElement | null>(null);
 	const map = useRef<maplibregl.Map | null>(null);
@@ -66,7 +76,7 @@ const MapComponent = () => {
 		
 		if(!routeData) return;
 		map.current.on('load', () => {
-			routeData.legs.forEach((leg: any, index: any) => {
+			routeData.legs.forEach((leg: RouteLeg, index: number) => {
 				const id = `leg-${index}`;
 
 				if(!map.current) return;
