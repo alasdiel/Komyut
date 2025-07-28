@@ -24,7 +24,7 @@ function HeroSection() {
               Lorem ipsum <br /> dolor sit amet!
             </h1>
             <Link to="/app">
-              <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-10 py-7 rounded-full tracking-wider">
+              <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-10 py-7 rounded-full tracking-wider cursor-pointer">
                 Get Started Now!
               </Button>
             </Link>
