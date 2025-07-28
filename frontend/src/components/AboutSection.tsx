@@ -2,7 +2,7 @@ function AboutSection() {
   return (
     <section className="px-4 md:px-8 py-16 bg-white">
       <div className="max-w-7xl mx-auto text-center md:text-left">
-        <h2 className="text-green-700 font-bold uppercase text-lg tracking-wider mb-4">
+        <h2 className="text-green-700 font-extrabold uppercase text-lg tracking-wider mb-4">
           About Us
         </h2>
         <p className="text-gray-800 md:text-lg leading-relaxed">
