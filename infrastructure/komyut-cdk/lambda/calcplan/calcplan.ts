@@ -3,6 +3,7 @@ import { loadRoutePackBundle, loadRoutePack, loadRoutePackFromS3, loadRoutePackF
 import { RoutePack } from "@shared/types";
 import { findBestPath, mergePathLegs, transformLegsForFrontend } from "../../calculation/routesolver";
 import { CORS_HEADERS } from "../../lib/constants/cors-config";
+import { calculateFare } from "infrastructure/komyut-cdk/calculation/farecalc";
 
 let cachedRoutePack: RoutePack | null = null;
 
@@ -46,6 +47,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         const mergedLegs = mergePathLegs(path);
         console.log(`mergePathLegs TOOK ${(performance.now() - time3)}ms`);
 
+        //Farecalc
+        const time5 = performance.now();
+        console.log(`start function calculateFare`);
+        const fareData = calculateFare(mergedLegs, cachedRoutePack);
+        console.log(`calculateFare TOOK ${performance.now() - time5}ms`);
+
         //Transfer from nodes->coords
         const time4 = performance.now();
         console.log(`start function transformLegsForFrontend`);
@@ -56,7 +63,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             statusCode: 200,
             headers: CORS_HEADERS, // Allow CORS for frontend
             body: JSON.stringify({
-                legs,                
+                legs,
+                fareData             
             })
         };
     } catch (err) {
