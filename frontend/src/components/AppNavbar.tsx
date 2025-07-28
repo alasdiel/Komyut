@@ -39,22 +39,22 @@ export default function Navbar() {
           <NavigationMenu>
             <NavigationMenuList className="flex gap-6 items-center">
               <NavigationMenuItem>
-                <Link to="/about" className="text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
+                <Link to="/about" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   About Us
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/services" className="text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
+                <Link to="/services" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Services
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/contact" className="text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
+                <Link to="/contact" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Contact Us
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/premium" className="text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
+                <Link to="/premium" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Premium
                 </Link>
               </NavigationMenuItem>
@@ -71,12 +71,12 @@ export default function Navbar() {
       {/* Mobile Dropdown Menu */}
       {open && (
         <div className="mt-4 flex flex-col gap-4 md:hidden">
-          <Link to="/about" className="text-base text-komyut-grey hover:text-komyut-blue tracking-wider">About Us</Link>
-          <Link to="/services" className="text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Services</Link>
-          <Link to="/contact" className="text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Contact Us</Link>
-          <Link to="/premium" className="text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Premium</Link>
+          <Link to="/about" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">About Us</Link>
+          <Link to="/services" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Services</Link>
+          <Link to="/contact" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Contact Us</Link>
+          <Link to="/premium" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Premium</Link>
           <div className="flex justify-center mt-2">
-            <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white text-base px-6 py-3 rounded-full font-extrabold">
+            <Button asChild className="bg-komyut-orange hover:bg-orange-600 text-komyut-white text-base px-6 py-3 rounded-full font-extrabold tracking-wider">
               <Link to="/sign-in">Sign In</Link>
             </Button>
           </div>
