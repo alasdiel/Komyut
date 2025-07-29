@@ -64,13 +64,15 @@ const featuresData: FeatureItemProps[] = [
 // Main section component
 const FeatureSection = () => {
   return (
-    <section className="max-w-6xl mx-auto px-6 py-12">
-      <h2 className="text-black font-bold text-lg uppercase mb-6">FEATURES</h2>
+    <section className="max-w-6xl mx-auto px-6 py-px-4 md:px-8 py-16 bg-white">
+      <div className="max-w-7xl mx-auto text-center md:text-left">
+        <h2 className="text-green-700 font-bold uppercase text-lg tracking-wider mb-4 max-w-7xl mx-auto text-center md:text-left">FEATURES</h2>
 
-      <div className="flex flex-col gap-8">
-        {featuresData.map((feature, idx) => (
-          <FeatureItem key={idx} {...feature} />
-        ))}
+        <div className="flex flex-col gap-8">
+          {featuresData.map((feature, idx) => (
+            <FeatureItem key={idx} {...feature} />
+          ))}
+        </div>
       </div>
     </section>
   );

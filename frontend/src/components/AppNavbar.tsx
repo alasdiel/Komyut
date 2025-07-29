@@ -23,7 +23,7 @@ export default function Navbar() {
             alt="Logo"
             className="w-12 h-12 rounded-full"
           />
-          <div className="text-2xl font-bold text-gray-900 font-sans">KOMYUT</div>
+          <div className="text-2xl font-bold text-gray-900 font-epilogue">KOMYUT</div>
         </div>
 
         {/* Hamburger (only shows on small screens) */}
@@ -39,22 +39,22 @@ export default function Navbar() {
           <NavigationMenu>
             <NavigationMenuList className="flex gap-6 items-center">
               <NavigationMenuItem>
-                <Link to="/about" className="text-base md:text-lg text-gray-600 hover:text-black">
+                <Link to="/about" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   About Us
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/services" className="text-base md:text-lg text-gray-600 hover:text-black">
+                <Link to="/services" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Services
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/contact" className="text-base md:text-lg text-gray-600 hover:text-black">
+                <Link to="/contact" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Contact Us
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/premium" className="text-base md:text-lg text-gray-600 hover:text-black">
+                <Link to="/premium" className="font-epilogue text-base md:text-lg text-komyut-grey hover:text-komyut-blue tracking-wider">
                   Premium
                 </Link>
               </NavigationMenuItem>
@@ -62,21 +62,21 @@ export default function Navbar() {
           </NavigationMenu>
 
           {/* Sign In Button */}
-          <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white text-base md:text-lg px-6 py-3 rounded-full font-extrabold">
+          <Button asChild className="bg-komyut-orange hover:bg-orange-600 text-komyut-white text-base md:text-lg px-6 py-3 rounded-full font-extrabold tracking-wider">
             <Link to="/sign-in">Sign In</Link>
           </Button>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu (only shows when open and on small screens) */}
+      {/* Mobile Dropdown Menu */}
       {open && (
         <div className="mt-4 flex flex-col gap-4 md:hidden">
-          <Link to="/about" className="text-base text-gray-600 hover:text-black">About Us</Link>
-          <Link to="/services" className="text-base text-gray-600 hover:text-black">Services</Link>
-          <Link to="/contact" className="text-base text-gray-600 hover:text-black">Contact Us</Link>
-          <Link to="/premium" className="text-base text-gray-600 hover:text-black">Premium</Link>
+          <Link to="/about" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">About Us</Link>
+          <Link to="/services" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Services</Link>
+          <Link to="/contact" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Contact Us</Link>
+          <Link to="/premium" className="font-epilogue text-base text-komyut-grey hover:text-komyut-blue tracking-wider">Premium</Link>
           <div className="flex justify-center mt-2">
-            <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white text-base px-6 py-3 rounded-full font-extrabold">
+            <Button asChild className="bg-komyut-orange hover:bg-orange-600 text-komyut-white text-base px-6 py-3 rounded-full font-extrabold tracking-wider">
               <Link to="/sign-in">Sign In</Link>
             </Button>
           </div>

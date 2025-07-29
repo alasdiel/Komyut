@@ -4,6 +4,7 @@ import { open } from 'openurl';
 
 import { RoutePack } from '@shared/types';
 import { buildNodeLookup, findBestPath, mergePathLegs, transformLegsForFrontend, transformLegsFromTruncatedPathsOnly } from './route-solver';
+import { calculateFare } from './farecalc';
 
 export function showMap(routePackData: RoutePack) {
     const app = express();
@@ -35,11 +36,13 @@ export function showMap(routePackData: RoutePack) {
 
         const mergedLegs = mergePathLegs(path);
 
+        const fareData = calculateFare(mergedLegs, routePackData);
+
         const legs = await transformLegsForFrontend(mergedLegs, routePackData, startCoord, endCoord);
 
         res.json({
-            legs,
-            plainPath: coordinates
+            legs,            
+            fareData
         });
     });
 
