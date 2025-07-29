@@ -27,62 +27,62 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		//#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
 		// VPC
-		const vpc = new ec2.Vpc(this, 'KomyutVPC', {
-			maxAzs: 2,
-			subnetConfiguration: [
-				{
-					cidrMask: 24,
-					name: 'private-subnet',
-					subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-				},
-				{
-					cidrMask: 24,
-					name: 'public-subnet',
-					subnetType: ec2.SubnetType.PUBLIC
-				},
-			],
-		});
+		// const vpc = new ec2.Vpc(this, 'KomyutVPC', {
+		// 	maxAzs: 2,
+		// 	subnetConfiguration: [
+		// 		{
+		// 			cidrMask: 24,
+		// 			name: 'private-subnet',
+		// 			subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+		// 		},
+		// 		{
+		// 			cidrMask: 24,
+		// 			name: 'public-subnet',
+		// 			subnetType: ec2.SubnetType.PUBLIC
+		// 		},
+		// 	],
+		// });
 
-		// Security Groups
-		const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
-			vpc,
-			allowAllOutbound: true,
-			description: 'Allow Lambdas to access OSRM'
-		});
-		const sgLambda = new ec2.SecurityGroup(this, 'KomyutSG_lambda', {
-			vpc,
-			allowAllOutbound: true
-		});
-		sgEC2.addIngressRule(sgLambda, ec2.Port.tcp(5000), 'Allow Lambdas to access OSRM');
-		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
-		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
+		// // Security Groups
+		// const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
+		// 	vpc,
+		// 	allowAllOutbound: true,
+		// 	description: 'Allow Lambdas to access OSRM'
+		// });
+		// const sgLambda = new ec2.SecurityGroup(this, 'KomyutSG_lambda', {
+		// 	vpc,
+		// 	allowAllOutbound: true
+		// });
+		// sgEC2.addIngressRule(sgLambda, ec2.Port.tcp(5000), 'Allow Lambdas to access OSRM');
+		// sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
+		// sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
 
-		// EC2		
-		const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
-			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-			// machineImage: ec2.MachineImage.latestAmazonLinux2023(),
-			machineImage: ec2.MachineImage.genericLinux({
-				'ap-southeast-1': 'ami-0714c5f5fa186c34d'
-			}),
-			blockDevices: [{
-				deviceName: '/dev/xvda',
-				volume: ec2.BlockDeviceVolume.ebs(30),
-			}],
+		// // EC2		
+		// const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
+		// 	instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
+		// 	// machineImage: ec2.MachineImage.latestAmazonLinux2023(),
+		// 	machineImage: ec2.MachineImage.genericLinux({
+		// 		'ap-southeast-1': 'ami-0714c5f5fa186c34d'
+		// 	}),
+		// 	blockDevices: [{
+		// 		deviceName: '/dev/xvda',
+		// 		volume: ec2.BlockDeviceVolume.ebs(30),
+		// 	}],
 
-			vpc,
-			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-			securityGroup: sgEC2,
+		// 	vpc,
+		// 	vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+		// 	securityGroup: sgEC2,
 
-			keyName: 'komyut-osrm-keypair',			
-		});
-		new ssm.StringParameter(this, 'KomyutEc2PrivateIP', { parameterName: '/komyut/ec2/private-ip', stringValue: ec2Instance.instancePrivateIp });
-		ec2Instance.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));		
-		ec2Instance.addUserData(
-			fs.readFileSync(path.join(__dirname, '../helpers/ec2.sh'), 'utf-8').replace(/\${ROUTEPACK_BUCKET_SUFFIX}/g, process.env.ROUTEPACK_BUCKET_SUFFIX!)
-		);
+		// 	keyName: 'komyut-osrm-keypair',			
+		// });
+		// new ssm.StringParameter(this, 'KomyutEc2PrivateIP', { parameterName: '/komyut/ec2/private-ip', stringValue: ec2Instance.instancePrivateIp });
+		// ec2Instance.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));		
+		// ec2Instance.addUserData(
+		// 	fs.readFileSync(path.join(__dirname, '../helpers/ec2.sh'), 'utf-8').replace(/\${ROUTEPACK_BUCKET_SUFFIX}/g, process.env.ROUTEPACK_BUCKET_SUFFIX!)
+		// );
 		//#endregion
 
-		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
+		//#region ⭐ LAMBDA FUNCTIONS
 		// ANTHONY'S WORK
 		const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
 			entry: path.join(__dirname, '../lambda/helloworld/helloworld.ts'),
@@ -96,13 +96,14 @@ export class KomyutCdkStack extends cdk.Stack {
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 			environment: {
 				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
+				ROUTECALC_USE_OSRM: process.env.ROUTECALC_USE_OSRM!,
 			},			
 
-			vpc: vpc,
-			vpcSubnets: {
-				subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-			},
-			securityGroups: [sgLambda],
+			// vpc: vpc,
+			// vpcSubnets: {
+			// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+			// },
+			// securityGroups: [sgLambda],
 		});		
 		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
 			actions: ['ssm:GetParameter'],
