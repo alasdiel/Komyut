@@ -4,6 +4,7 @@ import AWS from 'aws-sdk';
 import { RoutePack, RouteGraph } from "@shared/types";
 import { CONSTS } from "@shared/consts";
 import { astar, dijkstra } from "./pathfinding";
+import { haversine } from './haversine';
 
 let cachedPrivateIp: string | null = null;
 async function getEc2OSRMPrivateIp(): Promise<String> {
@@ -110,39 +111,25 @@ function findClosestRouteNodes(coord: [number, number], routePack: RoutePack, li
 
 async function getOSRMWalkingDistance(from: [number, number], to: [number, number]) {
     try {
-        const coordStr = [
-            [from[0], from[1]],
-            [to[0], to[1]]
-        ].map(([lat, lng]) => `${lng},${lat}`).join(';');
-        const url = `http://${await getEc2OSRMPrivateIp()}:5000/route/v1/bike/${coordStr}?overview=false`;
+        if(process.env.ROUTECALC_USE_OSRM === "false") {
+            return haversine(from, to);
+        } else {
+            const coordStr = [
+                [from[0], from[1]],
+                [to[0], to[1]]
+            ].map(([lat, lng]) => `${lng},${lat}`).join(';');
+            const url = `http://${await getEc2OSRMPrivateIp()}:5000/route/v1/bike/${coordStr}?overview=false`;
 
-        const res = await fetch(url);
-        const json: any = await res.json();
+            const res = await fetch(url);
+            const json: any = await res.json();
 
-        return json.routes[0].distance;
+            return json.routes[0].distance;
+        }        
     } catch (err: any) {
         console.error('Fetch failed:', err.message);
         console.error('Error cause:', err.cause); // More specific: DNS error, ECONNREFUSED, etc.
         console.error(err); // Full error object
     }
-    
-    //Replace with haversine temporarily
-    // const toRadians = (deg: number) => deg * (Math.PI / 180);
-    // const R = 6371e3; // Earth radius in meters
-
-    // const φ1 = toRadians(from[0]);
-    // const φ2 = toRadians(to[0]);
-    // const Δφ = toRadians(to[0] - from[0]);
-    // const Δλ = toRadians(to[1] - from[1]);
-
-    // const a = Math.sin(Δφ / 2) ** 2 +
-    //           Math.cos(φ1) * Math.cos(φ2) *
-    //           Math.sin(Δλ / 2) ** 2;
-
-    // const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    // await new Promise(res => setTimeout(res, 40));
-    // return R * c;
 }
 
 export function mergePathLegs(path: string[]) {
@@ -194,15 +181,18 @@ export function buildNodeLookup(routePack: RoutePack): Record<string, [number, n
 
 async function getOSRMWalkingPath(from: [number, number], to: [number, number]): Promise<[number, number][]> {
     try {
-        const url = `http://${await getEc2OSRMPrivateIp()}:5000/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-        const res = await fetch(url);
-        const data: any = await res.json();
+        if(process.env.ROUTECALC_USE_OSRM === "false") {
+            return [from, to];
+        } else {
 
-        if (data?.routes?.[0]?.geometry?.coordinates) {
-            return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
-        }
+            const url = `http://${await getEc2OSRMPrivateIp()}:5000/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+            const res = await fetch(url);
+            const data: any = await res.json();
 
-        // await new Promise(res => setTimeout(res, 40));        
+            if (data?.routes?.[0]?.geometry?.coordinates) {
+                return data.routes[0].geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng]);
+            }
+        }      
     } catch(err: any) {
         console.error('Fetch failed:', err.message);
         console.error('Error cause:', err.cause); // More specific: DNS error, ECONNREFUSED, etc.
