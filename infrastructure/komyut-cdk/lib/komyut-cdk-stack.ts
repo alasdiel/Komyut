@@ -10,6 +10,7 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { CORS_CONFIG } from './constants/cors-config';
 
 import * as path from 'path';
@@ -25,8 +26,8 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 💿 DYNAMODB TABLES
 
-		//#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
-		// VPC
+		// //#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
+		// // VPC
 		// const vpc = new ec2.Vpc(this, 'KomyutVPC', {
 		// 	maxAzs: 2,
 		// 	subnetConfiguration: [
@@ -82,49 +83,106 @@ export class KomyutCdkStack extends cdk.Stack {
 		// );
 		//#endregion
 
-		//#region ⭐ LAMBDA FUNCTIONS
+		//#region 🏊 COGNITO USER POOL
+		const userPool = new cognito.UserPool(this, 'KomyutUserPool', {
+		userPoolName: 'KomyutUsers',
+		selfSignUpEnabled: true, // Allow users to sign up
+		signInAliases: { email: true }, // Allow sign in with email
+		autoVerify: { email: true },
+		userVerification: {
+			emailSubject: 'Your Komyut Verification Code',
+			emailBody: 'Your verification code is: {####}', // Code will replace {####}
+			emailStyle: cognito.VerificationEmailStyle.CODE
+		},
+		passwordPolicy: {
+			minLength: 6,
+			requireDigits: false,
+			requireSymbols: false,
+			requireUppercase: false,
+			requireLowercase: false, // All optional, adjust as needed
+		},
+		removalPolicy: cdk.RemovalPolicy.DESTROY, 
+		});
+
+		const userPoolClient = new cognito.UserPoolClient(this, 'KomyutUserPoolClient', {
+			userPool,
+			authFlows: { userPassword: true }, 
+		});
+
+		new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
+		new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
+
+		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
 		// ANTHONY'S WORK
 		const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
 			entry: path.join(__dirname, '../lambda/helloworld/helloworld.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
 
-		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
-			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
-			runtime: lambda.Runtime.NODEJS_20_X,
-			timeout: cdk.Duration.seconds(300),
-			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
-			environment: {
-				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
-				ROUTECALC_USE_OSRM: process.env.ROUTECALC_USE_OSRM!,
-			},			
+		// const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
+		// 	entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
+		// 	runtime: lambda.Runtime.NODEJS_20_X,
+		// 	timeout: cdk.Duration.seconds(300),
+		// 	memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
+		// 	environment: {
+		// 		ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
+		// 	},			
 
-			// vpc: vpc,
-			// vpcSubnets: {
-			// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-			// },
-			// securityGroups: [sgLambda],
-		});		
-		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
-			actions: ['ssm:GetParameter'],
-			resources: ['*']
-		}))
+		// 	vpc: vpc,
+		// 	vpcSubnets: {
+		// 		subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+		// 	},
+		// 	securityGroups: [sgLambda],
+		// });		
+		// fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
+		// 	actions: ['ssm:GetParameter'],
+		// 	resources: ['*']
+		// }))
 
-		// KARLO'S WORK
+		// Authentication Functions
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
 			entry: path.join(__dirname, '../lambda/confirmSignup/confirmSignup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
+			environment: {
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_USER_POOL_ID: userPool.userPoolId,
+			},
 		});
 
 		const fnSignin = new lambdaNJS.NodejsFunction(this, 'SigninFunction', {
 			entry: path.join(__dirname, '../lambda/signin/signin.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
+			environment: {
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_USER_POOL_ID: userPool.userPoolId,
+			},
 		});
 
 		const fnSignup = new lambdaNJS.NodejsFunction(this, 'SignupFunction', {
 			entry: path.join(__dirname, '../lambda/signup/signup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
+			environment: {
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_USER_POOL_ID: userPool.userPoolId,
+			},
 		});
+
+		// Add Cognito permissions to all auth functions
+		const cognitoPolicy = new iam.PolicyStatement({
+		actions: [
+			'cognito-idp:SignUp',
+			'cognito-idp:ConfirmSignUp',
+			'cognito-idp:InitiateAuth',
+			'cognito-idp:AdminConfirmSignUp',
+		],
+		resources: [
+			`arn:aws:cognito-idp:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:userpool/${process.env.COGNITO_USER_POOL_ID}`
+		],
+		});
+
+		fnSignup.addToRolePolicy(cognitoPolicy);
+		fnSignin.addToRolePolicy(cognitoPolicy);
+		fnConfirmSignup.addToRolePolicy(cognitoPolicy);
 		//#endregion
 
 		//#region 🪣 S3 BUCKETS
@@ -139,7 +197,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
 			destinationKeyPrefix: 'routepack-bundle',
 		});		
-		routePackBucket.grantRead(fnCalcPlan);		
+		// routePackBucket.grantRead(fnCalcPlan);		
 		//#endregion
 
 		//#region ☁️ CLOUDFRONT DISTRIBUTION
@@ -153,21 +211,33 @@ export class KomyutCdkStack extends cdk.Stack {
 		defaultRootObject: 'routepack-bundle/routepack.json',
 		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
 		});		
-		//#endregion		
+		//#endregion	
 
 		//#region 🚦 APIGATEWAY DEFINITION
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
-			defaultCorsPreflightOptions: CORS_CONFIG
+		defaultCorsPreflightOptions: CORS_CONFIG
 		});
 
+		// Endpoints
 		api.root.addResource('hello-world')
-			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
-		// api.root.addResource('test-routepack')
-		//   .addMethod('GET', new apigw.LambdaIntegration(fnTestLoadRoutePack));
+		.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
 
-		api.root.addResource('calc-route')
-		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
-			proxy: true, // Added to allow the Lambda func to handle the request body directly
+		// api.root.addResource('calc-route')
+		// .addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
+		// 	proxy: true,
+		// }));
+
+		api.root.addResource('signin')
+		.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
+			proxy: true,
+		}));
+		api.root.addResource('signup')
+		.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
+			proxy: true,
+		}));
+		api.root.addResource('confirm-signup')
+		.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
+			proxy: true,
 		}));
 		//#endregion
 	}

@@ -1,30 +1,40 @@
 import { CognitoIdentityServiceProvider } from 'aws-sdk';
 const cognito = new CognitoIdentityServiceProvider();
 
-interface ConfirmSignupRequest {
-  email: string;
-  confirmationCode: string;
+interface ConfirmRequest {
+  email: string;  
+  code: string; 
 }
 
-export const handler = async (event: ConfirmSignupRequest) => {
+export const handler = async (event: { body: string }) => {
   try {
-    const params = {
-      ClientId: process.env.COGNITO_CLIENT_ID!,
-      Username: event.email,
-      ConfirmationCode: event.confirmationCode
-    };
-
-    await cognito.confirmSignUp(params).promise();
+    const { email, code } = JSON.parse(event.body) as ConfirmRequest;
     
+    await cognito.confirmSignUp({
+      ClientId: process.env.COGNITO_CLIENT_ID!,
+      Username: email, 
+      ConfirmationCode: code
+    }).promise();
+
     return {
       statusCode: 200,
-      body: { message: 'User confirmed successfully' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ message: 'Email verified successfully' })
     };
   } catch (error) {
-    console.error('Confirmation error:', error);
     return {
       statusCode: 400,
-      body: { error: (error as Error).message }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ 
+        error: (error as Error).message,
+        code: (error as any).code
+      })
     };
   }
 };

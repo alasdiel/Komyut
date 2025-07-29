@@ -9,8 +9,10 @@ export const CORS_CONFIG: CorsOptions = {
     'X-Amz-Date',
     'Authorization',
     'X-Api-Key',
-    'X-Amz-Security-Token'
+    'X-Amz-Security-Token',
+    'X-Amz-User-Agent',
   ],
+  allowCredentials: true,
   maxAge: Duration.minutes(10),
   statusCode: 200,
 //allowCredentials: Uncomment to allow credentials (cookies, HTTP)

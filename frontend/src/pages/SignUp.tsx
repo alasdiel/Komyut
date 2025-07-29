@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput'; // Adjust the path as needed
 
 function SignUp() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    accountName: '',
+    email: '',
     username: '',
     password: '',
     confirmPassword: '',
@@ -51,12 +52,21 @@ function SignUp() {
     setIsSubmitting(true);
     setErrors({ username: '', password: '', general: '' });
 
+    // Clientside validation
+    // Email validation
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      setErrors({...errors, general: 'Please enter a valid email'});
+      return;
+    }
+
+    // Confirm password validation
     if (formData.password !== formData.confirmPassword) {
       setErrors((prev) => ({ ...prev, password: 'Passwords do not match' }));
       setIsSubmitting(false);
       return;
     }
 
+    // Password length validation
     if (formData.password.length < 6) {
       setErrors((prev) => ({ ...prev, password: 'Password must be at least 6 characters' }));
       setIsSubmitting(false);
@@ -71,25 +81,40 @@ function SignUp() {
     }
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email,
+          username: formData.username,
+          password: formData.password
+        }),
       });
 
-      if (!response.ok) throw new Error('Registration failed');
+      const data = await response.json();
 
-      alert('Registration successful!');
-      // redirect logic here, like: navigate("/sign-in")
-    } catch {
+      if (!response.ok) {
+        // Handle Cognito-specific errors
+        if (data.code === 'UsernameExistsException') {
+          throw new Error('Username already exists');
+        }
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Successful registration
+      alert('Registration successful! You may now sign in with your new account.');
+      navigate('/sign-in');
+    } catch (error: unknown) {
       setErrors((prev) => ({
         ...prev,
-        general: 'Registration failed. Please try again.',
+        general: error instanceof Error 
+          ? error.message 
+          : 'Registration failed. Please try again.',
       }));
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-orange-500 flex items-center justify-center">
@@ -103,13 +128,13 @@ function SignUp() {
 
         <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="text-sm font-medium text-gray-700">Create Account Name</label>
+            <label className="text-sm font-medium text-gray-700">Create Email</label>
             <input
               type="text"
-              name="accountName"
-              value={formData.accountName}
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              placeholder="ex. Juan Dela Cruz"
+              placeholder=""
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               required
             />
