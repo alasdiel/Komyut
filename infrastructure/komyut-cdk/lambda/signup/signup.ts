@@ -2,22 +2,24 @@ import { CognitoIdentityServiceProvider } from 'aws-sdk';
 const cognito = new CognitoIdentityServiceProvider();
 
 interface SignupRequest {
-  email: string;
+  username: string; 
+  email: string;  
   password: string;
-  name: string;
-  phoneNumber?: string;
 }
 
-export const handler = async (event: SignupRequest) => {
+export const handler = async (event: { body: string }) => {
   try {
+    const { username, email, password } = JSON.parse(event.body) as SignupRequest;
+    
     const params = {
       ClientId: process.env.COGNITO_CLIENT_ID!,
-      Username: event.email,
-      Password: event.password,
+      Username: email, // Use email as username if username not provided
+      Password: password,
       UserAttributes: [
-        { Name: 'email', Value: event.email },
-        { Name: 'name', Value: event.name },
-        ...(event.phoneNumber ? [{ Name: 'phone_number', Value: event.phoneNumber }] : [])
+        { 
+          Name: 'email', 
+          Value: email 
+        },
       ],
     };
 
@@ -25,17 +27,28 @@ export const handler = async (event: SignupRequest) => {
     
     return {
       statusCode: 200,
-      body: {
-        message: 'User registration initiated',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+        message: 'User registration successful. Please check your email to verify.',
         userId: response.UserSub,
-        email: event.email
-      }
+        email: email
+      })
     };
   } catch (error) {
     console.error('Signup error:', error);
     return {
       statusCode: 400,
-      body: { error: (error as Error).message }
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ 
+        error: (error as Error).message,
+        code: (error as any).code
+      })
     };
   }
 };
