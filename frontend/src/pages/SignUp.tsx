@@ -104,15 +104,17 @@ function SignUp() {
       // Successful registration
       alert('Registration successful! You may now sign in with your new account.');
       navigate('/sign-in');
-    } catch (error: any) {
+    } catch (error: unknown) {
       setErrors((prev) => ({
         ...prev,
-        general: error.message || 'Registration failed. Please try again.',
+        general: error instanceof Error 
+          ? error.message 
+          : 'Registration failed. Please try again.',
       }));
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-orange-500 flex items-center justify-center">

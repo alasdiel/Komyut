@@ -47,12 +47,17 @@ function SignIn() {
       localStorage.setItem('refreshToken', data.refreshToken);
       navigate('/app');
 
-    } catch (err: any) {
-      setError(err.message || 'Sign in failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+
+      } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'string') {
+        setError(err);
+      } else {
+        setError('Sign in failed. Please try again.');
+      }
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-orange-500 flex items-center justify-center">
