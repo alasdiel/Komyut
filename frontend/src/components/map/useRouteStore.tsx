@@ -3,11 +3,16 @@ import { create } from 'zustand'
 export interface RouteLeg {
   type: string;
   routeId: string;
+  routeName: string;
   coordinates: [number, number][];
 };
 
-interface RouteData {
+export interface RouteData {
   legs: RouteLeg[];
+  fareData: { 
+    totalFare: number, 
+    legs: { [routeId: string]: { distance: number, fare: number }}
+  };
 };
 
 interface Position { 
