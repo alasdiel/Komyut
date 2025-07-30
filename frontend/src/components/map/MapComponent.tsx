@@ -3,6 +3,7 @@ import maplibregl, { Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
+import { createMarkers } from './MarkerManager.tsx';
 
 
 const MapComponent = () => {
@@ -15,57 +16,24 @@ const MapComponent = () => {
 	const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
 	useEffect(() => {
-		const initializeMap = () => {
-			if (!mapContainer.current) return;
+		if (!mapContainer.current) return;
 
-			map.current = new maplibregl.Map({
-				container: mapContainer.current,
-				style: stylejson,
-				center: [125.6088, 7.15],
-				zoom: 10,
-				minZoom: 8,
-				maxZoom: 14,
-				maxBounds: [
-					[125.204904, 6.795854],
-					[125.892734, 7.516401],
-				],
-			});
+		map.current = new maplibregl.Map({
+			container: mapContainer.current,
+			style: stylejson,
+			center: [125.6088, 7.15],
+			zoom: 10,
+			minZoom: 8,
+			maxZoom: 14,
+			maxBounds: [
+				[125.204904, 6.795854],
+				[125.892734, 7.516401],
+			],
+		});
+
+		if(map.current) {
+			createMarkers(map.current, { setStartPos, setEndPos });
 		}
-
-		const createMarkers = () => {
-			if(!map.current) return;
-
-			let startMarker = new Marker({
-				color: 'red',
-				draggable: true,
-			})
-			.setLngLat([125.588236, 7.050853])
-			.addTo(map.current);	
-
-			let endMarker = new Marker({
-				color: 'blue',
-				draggable: true,
-			})
-			.setLngLat([125.642093, 7.132042])
-			.addTo(map.current);	
-			
-			startMarker.on('dragend', () => {
-				setStartPos({
-					lat: startMarker.getLngLat().lat,
-					lng: startMarker.getLngLat().lng,
-				})
-			});
-
-			endMarker.on('dragend', () => {
-				setEndPos({
-					lat: endMarker.getLngLat().lat,
-					lng: endMarker.getLngLat().lng,
-				})
-			});
-		}
-
-		initializeMap();
-		createMarkers();
 
 		return () => {
 			map.current?.remove();
