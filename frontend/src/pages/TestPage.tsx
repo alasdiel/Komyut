@@ -10,9 +10,12 @@ export function TestPage() {
             eta="2 hrs 5 mins" 
             distance="65.2 km" 
             legs={[
-              { name: "Mintal Jeep", fare: 15 },
-              { name: "Matina Jeep", fare: 20 },
-              { name: "Lanang Jeep", fare: 13 }
+                  { type: "walk", destination: "Mintal Terminal" },
+                  { type: "jeepney", name: "Mintal Jeep", fare: 15, color: "#00FFFF"},
+                  { type: "jeepney", name: "Matina Jeep", fare: 20 },
+                  { type: "walk", destination: "SM Lanang" },
+                  { type: "jeepney", name: "Lanang Jeep", fare: 13 },
+                  { type: "walk", destination: "Your Location" }
             ]} 
           />
         </div>

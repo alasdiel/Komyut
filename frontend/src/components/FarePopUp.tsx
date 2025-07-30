@@ -2,11 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { X, BusIcon, ArrowUpIcon } from 'lucide-react';
 import Draggable from 'react-draggable';
 import jeepneyImage from '../assets/jeepney.png';
+import walkImage from '../assets/walk.png';
 
 
 interface JeepneyLeg {
-  name: string;
-  fare: number;
+  type: 'jeepney' | 'walk';
+  name?: string;
+  fare?: number;
+  destination?: string;
+  color?: string;
 }
 
 interface FarePopupProps {
@@ -14,6 +18,7 @@ interface FarePopupProps {
   distance: string;
   legs: JeepneyLeg[];
 }
+
 
 export function FarePopup({ eta, distance, legs }: FarePopupProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +30,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
   const dragRef = useRef(null);
 
   // Calculate the total fare
-  const totalFare = legs.reduce((sum, leg) => sum + leg.fare, 0);
+  const totalFare = legs.reduce((sum, leg) => sum + (leg.type === 'jeepney' ? leg.fare || 0 : 0), 0);
 
   // Check if device being used is mobile, resize if detected
   useEffect(() => {
@@ -88,14 +93,27 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                 {legs.map((leg, index) => (
                   <div key={index} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-3">
-                      <img 
-                        src={jeepneyImage} 
-                        alt="Jeepney" 
-                        className="w-16 h-10"
-                      />
-                      <span className="text-lg font-epilogue">{leg.name}</span>
+                      <div className="w-16 h-10 flex items-center justify-center"> 
+                        {leg.type === 'jeepney' ? (
+                          <img src={jeepneyImage} alt="Jeepney" className="w-full h-full object-contain" />
+                        ) : (
+                          <img src={walkImage} alt="Walking" className="w-16 h-10 object-contain" /> 
+                        )}
+                      </div>
+                      <span 
+                        className={`${
+                          leg.type === 'walk' ? 'text-sm text-gray-500' : 'text-lg'
+                        } font-epilogue ml-2`} 
+                        style={leg.type === 'jeepney' ? { color: leg.color } : undefined}
+                      >
+                        {leg.type === 'jeepney' 
+                          ? leg.name || 'Jeepney Ride' 
+                          : `Walk to ${leg.destination || 'next location'}`}
+                      </span>
                     </div>
-                    <span className="text-lg font-semibold font-epilogue ">₱ {leg.fare}</span>
+                    {leg.type === 'jeepney' && (
+                      <span className="text-lg font-semibold font-epilogue">₱ {leg.fare}</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -154,16 +172,29 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
 
               <div className="space-y-4 mt-4">
                 {legs.map((leg, index) => (
-                  <div key={index} className="flex items-center justify-between ">
+                  <div key={index} className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-2">
-                      <img 
-                        src={jeepneyImage} 
-                        alt="Jeepney" 
-                        className="w-12 h-8"
-                      />
-                      <span className="font-medium font-epilogue">{leg.name}</span>
+                      <div className="w-12 h-8 flex items-center justify-center"> 
+                        {leg.type === 'jeepney' ? (
+                          <img src={jeepneyImage} alt="Jeepney" className="w-full h-full object-contain" />
+                        ) : (
+                          <img src={walkImage} alt="Walking" className="w-12 h-8 object-contain" /> 
+                        )}
+                      </div>
+                      <span 
+                        className={`${
+                          leg.type === 'walk' ? 'text-xs text-gray-500' : 'font-medium'
+                        } font-epilogue ml-2`} 
+                        style={leg.type === 'jeepney' ? { color: leg.color } : undefined}
+                      >
+                        {leg.type === 'jeepney' 
+                          ? leg.name || 'Jeepney Ride' 
+                          : `Walk to ${leg.destination || 'next location'}`}
+                      </span>
                     </div>
-                    <span className="font-medium font-epilogue">₱ {leg.fare}</span>
+                    {leg.type === 'jeepney' && (
+                      <span className="font-medium font-epilogue">₱ {leg.fare}</span>
+                    )}
                   </div>
                 ))}
               </div>
