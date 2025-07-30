@@ -2,6 +2,7 @@ import { useRouteStore } from './useRouteStore.tsx'
 
 export const handleClick = async () => {
   const { startPos, endPos, setRouteData } = useRouteStore();
+  console.log(startPos, endPos);
   const response = await fetch(import.meta.env.ROUTECALC_API_CALL,
     {
       method: 'POST',

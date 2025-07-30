@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-interface RouteLeg {
+export interface RouteLeg {
   type: string;
   routeId: string;
   coordinates: [number, number][];

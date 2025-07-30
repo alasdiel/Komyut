@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useRouteStore } from './useRouteStore.tsx';
+import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 
 
@@ -10,7 +10,6 @@ const MapComponent = () => {
   const map = useRef<maplibregl.Map | null>(null);
   const { routeData } = useRouteStore(); 
   const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
-
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -39,6 +38,7 @@ const MapComponent = () => {
       const id = `leg-${index}`;
 
       if (map.current?.getSource(id)) return;
+      if (!map.current) return;
       map.current.addSource(id, {
         type: 'geojson',
         data: {
