@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import PasswordInput from '@/components/PasswordInput'; // Adjust the path as needed
+import { VerificationPopup } from '@/components/VerificationPopup'; // Import the popup component
 
 function SignUp() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ function SignUp() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -101,9 +103,9 @@ function SignUp() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Successful registration
-      alert('Registration successful! You may now sign in with your new account.');
-      navigate('/sign-in');
+      // Show verification popup instead of immediate redirect
+      setShowVerification(true);
+
     } catch (error: unknown) {
       setErrors((prev) => ({
         ...prev,
@@ -115,6 +117,46 @@ function SignUp() {
       setIsSubmitting(false);
     }
   }
+    const handleVerify = async (code: string) => {
+    try {
+      const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/confirm-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: formData.email,
+          code 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Verification failed');
+      }
+
+      // Verification successful
+      alert('Email verified successfully! You may now sign in with your new account.');
+      navigate('/sign-in');
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Verification failed');
+    }
+  };
+
+  const handleResendCode = async () => {
+    try {
+      const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/resend-code', { // still need to add the func
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to resend code');
+      }
+
+      alert('Verification code resent successfully!');
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Failed to resend code');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-orange-500 flex items-center justify-center">
@@ -187,6 +229,17 @@ function SignUp() {
             <Link to="/sign-in">Already have an account? Login here!</Link>
           </div>
         </form>
+        {showVerification && (
+          <VerificationPopup
+            email={formData.email}
+            onVerify={handleVerify}
+            onResendCode={handleResendCode}
+            onClose={() => {
+                setShowVerification(false);
+                navigate('/sign-in'); // Redirect to sign-in after closing the popup
+            }}
+          />
+        )}
       </div>
     </div>
   );

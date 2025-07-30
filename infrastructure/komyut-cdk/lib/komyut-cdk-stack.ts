@@ -167,6 +167,15 @@ export class KomyutCdkStack extends cdk.Stack {
 			},
 		});
 
+		const fnResendVerificationCode = new lambdaNJS.NodejsFunction(this, 'ResendVerificationCodeFunction', {
+			entry: path.join(__dirname, '../lambda/resendVerificationCode/resendVerificationCode.ts'),
+			runtime: lambda.Runtime.NODEJS_20_X,
+			environment: {
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_USER_POOL_ID: userPool.userPoolId,
+			},
+		});
+
 		// Add Cognito permissions to all auth functions
 		const cognitoPolicy = new iam.PolicyStatement({
 		actions: [
@@ -183,6 +192,7 @@ export class KomyutCdkStack extends cdk.Stack {
 		fnSignup.addToRolePolicy(cognitoPolicy);
 		fnSignin.addToRolePolicy(cognitoPolicy);
 		fnConfirmSignup.addToRolePolicy(cognitoPolicy);
+		fnResendVerificationCode.addToRolePolicy(cognitoPolicy);
 		//#endregion
 
 		//#region 🪣 S3 BUCKETS
@@ -237,6 +247,10 @@ export class KomyutCdkStack extends cdk.Stack {
 		}));
 		api.root.addResource('confirm-signup')
 		.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
+			proxy: true,
+		}));
+		api.root.addResource('resend-code')
+		.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
 			proxy: true,
 		}));
 		//#endregion
