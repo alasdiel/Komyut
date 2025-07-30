@@ -1,20 +1,29 @@
+import type { JeepneyLeg } from '../FarePopUp';
 import { type RouteData } from './useRouteStore';
-import { useColorMapStore } from './useRouteStore';
 
-export const populateFarePopupLegs = (routeData: RouteData) => {
-    const { routeColors } = useColorMapStore.getState();
-
-    return Object.entries(routeData.fareData.legs).map(([routeId, fareInfo]) => {
-        const matchingLeg = routeData.legs.find(
-            leg => leg.type === 'jeepney' && leg.routeId === routeId
-        );
+export const populateFarePopupLegs = (routeData: RouteData, routeColors: Record<string, string>): JeepneyLeg[] => {
+    return routeData.legs.map(leg => {        
+        const fareInfo = 
+            leg.type === 'jeepney' ? routeData.fareData.legs[leg.routeId] : undefined;
 
         return {
-            type: matchingLeg?.type,
-            name: matchingLeg?.routeName ?? routeId,
+            type: (leg.type) as 'jeepney' | 'walk',
+            name: leg.routeName,
             fare: fareInfo?.fare ?? 0,
-            color: routeColors[routeId] ?? '#000000', // fallback if not set
-            destination: '...'
-        };
+            color: routeColors[leg.routeId] ?? '#000000',
+            destination: '...',
+        }
     });
 };
+
+export const displayTotalDistance = (routeData: RouteData) => {
+    let totalDistance = 0;
+
+    Object.entries(routeData.fareData.legs).forEach((l: [string, { distance: number; fare: number; }]) => {
+        const leg = l[1];
+
+        totalDistance += leg.distance;
+    });
+
+    return `${totalDistance} km`
+}

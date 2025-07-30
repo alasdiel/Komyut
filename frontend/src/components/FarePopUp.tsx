@@ -5,7 +5,7 @@ import jeepneyImage from '../assets/jeepney.png';
 import walkImage from '../assets/walk.png';
 
 
-interface JeepneyLeg {
+export interface JeepneyLeg {
   type: 'jeepney' | 'walk';
   name?: string;
   fare?: number;

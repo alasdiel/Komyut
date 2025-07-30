@@ -6,14 +6,16 @@ import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup } from '../FarePopUp.tsx';
-import { populateFarePopupLegs } from './PopupDataManager.tsx';
+import { displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
 
 
 const MapComponent = () => {
 	const setStartPos = useRouteStore(s => s.setStartPos);
 	const setEndPos = useRouteStore(s => s.setEndPos);
 
-	const { setRouteColor } = useColorMapStore.getState();
+	const routeColors = useColorMapStore(s => s.routeColors);
+	const setRouteColor = useColorMapStore(s => s.setRouteColor);
+
 	const mapContainer = useRef<HTMLDivElement | null>(null);
 	const map = useRef<maplibregl.Map | null>(null);
 	const { routeData } = useRouteStore();
@@ -89,7 +91,7 @@ const MapComponent = () => {
 					},
 				});
 
-				let pathStyle = getPathlineStyle(leg);
+				const pathStyle = getPathlineStyle(leg);
 				if(leg.type === 'jeepney') {
 					const color = pathStyle!['line-color'] as string;
 					setRouteColor(leg.routeId!, color);
@@ -110,7 +112,7 @@ const MapComponent = () => {
 		clearOldLegs();
 		drawLegs();		
 		
-	}, [routeData]);
+	}, [routeData, setRouteColor]);
 
 	return (
 		<div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
@@ -119,8 +121,8 @@ const MapComponent = () => {
 			{routeData && (
 				<FarePopup
 					eta="-- mins"
-					distance="-- km"
-					legs={populateFarePopupLegs(routeData)}					
+					distance={displayTotalDistance(routeData)}
+					legs={populateFarePopupLegs(routeData, routeColors)}					
 				/>
 			)}			
 		</div>
