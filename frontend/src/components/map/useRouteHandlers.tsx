@@ -27,7 +27,7 @@ export function useRouteHandlers() {
   };
 
   const handleClick = async () => {
-    const response = await fetch(import.meta.env.ROUTECALC_API_CALL, {
+    const response = await fetch(`${import.meta.env.VITE_ROUTECALC_API_CALL}/calc-plan/`, {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -36,11 +36,6 @@ export function useRouteHandlers() {
       },
       body: JSON.stringify({ startPos, endPos }),
     });
-
-    setStartPos({lat: 7, lng: 120})
-    setEndPos({lat: 7.2, lng: 120.2})
-
-    console.log(startPos, endPos)
     
     if (!response.ok) {
       const errorData = await response.json();
