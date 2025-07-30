@@ -100,7 +100,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                 ))}
               </div>
 
-                <div className="bg-orange-500 text-white p-5 w-full mt-4">
+                <div className="bg-orange-500 text-white p-5 w-full mt-4 rounded">
                     <div className="flex justify-between max-w-md mx-auto">
                     <span className="text-2xl font-bold font-epilogue">TOTAL FARE</span>
                     <span className="text-2xl font-bold font-epilogue">₱ {totalFare}</span>

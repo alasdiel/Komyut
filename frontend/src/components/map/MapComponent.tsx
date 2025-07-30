@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
+import { useColorMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
@@ -13,7 +13,7 @@ const MapComponent = () => {
 	const setStartPos = useRouteStore(s => s.setStartPos);
 	const setEndPos = useRouteStore(s => s.setEndPos);
 
-	const jeepColorMap = useRef<Record<string, string>>({});
+	const { setRouteColor } = useColorMapStore.getState();
 	const mapContainer = useRef<HTMLDivElement | null>(null);
 	const map = useRef<maplibregl.Map | null>(null);
 	const { routeData } = useRouteStore();
@@ -91,9 +91,8 @@ const MapComponent = () => {
 
 				let pathStyle = getPathlineStyle(leg);
 				if(leg.type === 'jeepney') {
-					if(!jeepColorMap.current[leg.routeId]) {
-						jeepColorMap.current[leg.routeId] = pathStyle!['line-color'] as string;
-					}
+					const color = pathStyle!['line-color'] as string;
+					setRouteColor(leg.routeId!, color);
 				}
 				map.current.addLayer({
 					id: id,					
@@ -109,8 +108,7 @@ const MapComponent = () => {
 		}
 
 		clearOldLegs();
-		drawLegs();
-		console.log(jeepColorMap);
+		drawLegs();		
 		
 	}, [routeData]);
 

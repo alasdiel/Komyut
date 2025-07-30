@@ -29,6 +29,19 @@ interface RouteState {
   setRouteData: (data: RouteData) => void
 }
 
+interface JeepColorMapState {
+  routeColors: Record<string, string>;
+  setRouteColor: (routeId: string, color: string) => void;
+}
+
+export const useColorMapStore = create<JeepColorMapState>(set => ({
+  routeColors: {},
+  setRouteColor: (routeId, color) =>
+    set(state => ({
+      routeColors: { ...state.routeColors, [routeId]: color }
+    })),
+}));
+
 export const useRouteStore = create<RouteState>((set) => ({
   startPos: { lat: 0, lng: 0 },
   endPos: { lat: 0, lng: 0 },
