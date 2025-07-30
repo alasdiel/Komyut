@@ -1,13 +1,8 @@
-import { useRouteStore } from '@/components/map/useRouteStore'
 import { Button } from '@/components/ui/button'
-import { handleClick, handlePositionChange } from '@/components/map/useRouteLogic'
-
-
-
+import { useRouteHandlers } from '@/components/map/useRouteHandlers'
 
 export default function MapRoutingOverlay() {
-  const startPos = useRouteStore(s => s.startPos)
-  const endPos = useRouteStore(s => s.endPos)
+  const { startPos, endPos, handleClick, handlePositionChange } = useRouteHandlers();
   return (
     <div className="flex items-center justify-center flex-col h-1/3 bg-indigo-950">
 
