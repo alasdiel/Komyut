@@ -41,43 +41,70 @@ const MapComponent = () => {
 	}, []);
 
 	useEffect(() => {
-		if (!map.current || !routeData) return;
+		if (!map.current) return;
 
-		routeData.legs.forEach((leg: RouteLeg, index: number) => {
-			const id = `leg-${index}`;
-
-			if (map.current?.getSource(id)) return;
-			if (!map.current) return;
-			map.current.addSource(id, {
-				type: 'geojson',
-				data: {
-					type: 'Feature',
-					geometry: {
-						type: 'LineString',
-						coordinates: leg.coordinates.map(([lat, lng]) => [lng, lat]), // [lng, lat]
-					},
-					properties: {
-						type: leg.type,
-						routeId: leg.routeId,
-					},
-				},
+		if (!map.current.isStyleLoaded()) {
+			map.current.once("styledata", () => {
+				clearOldLegs();
+				drawLegs();
 			});
+			return;
+		}
 
-			map.current.addLayer({
-				id: id,
-				type: 'line',
-				source: id,
-				layout: {
-					'line-join': 'round',
-					'line-cap': 'round',
-				},
-				paint: {
-					'line-color': leg.type === 'walk' ? '#888' : '#007aff',
-					'line-width': leg.type === 'walk' ? 3 : 5,
-					...(leg.type === 'walk' ? { 'line-dasharray': [2, 2] } : {}),
-				},
+		function clearOldLegs() {
+			const existingLegLayers = map.current?.getStyle().layers?.filter(l => l.id.startsWith("leg-")) || [];
+			existingLegLayers.forEach(layer => {
+				if (map.current?.getLayer(layer.id)) {
+					map.current.removeLayer(layer.id);
+				}
+				if (map.current?.getSource(layer.id)) {
+					map.current.removeSource(layer.id);
+				}
 			});
-		});
+		}
+
+		function drawLegs() {
+			if (!routeData) return;
+			routeData.legs.forEach((leg: RouteLeg, index: number) => {
+				const id = `leg-${index}`;
+
+				if (map.current?.getSource(id)) return;
+				if (!map.current) return;
+				map.current.addSource(id, {
+					type: 'geojson',
+					data: {
+						type: 'Feature',
+						geometry: {
+							type: 'LineString',
+							coordinates: leg.coordinates.map(([lat, lng]) => [lng, lat]), // [lng, lat]
+						},
+						properties: {
+							type: leg.type,
+							routeId: leg.routeId,
+						},
+					},
+				});
+
+				map.current.addLayer({
+					id: id,
+					type: 'line',
+					source: id,
+					layout: {
+						'line-join': 'round',
+						'line-cap': 'round',
+					},
+					paint: {
+						'line-color': leg.type === 'walk' ? '#888' : '#007aff',
+						'line-width': leg.type === 'walk' ? 3 : 5,
+						...(leg.type === 'walk' ? { 'line-dasharray': [2, 2] } : {}),
+					},
+				});
+			});
+		}
+
+		clearOldLegs();
+		drawLegs();
+		
 	}, [routeData]);
 
 	return (
