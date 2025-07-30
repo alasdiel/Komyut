@@ -60,7 +60,7 @@ function HeroSection() {
             <img
               src={jeepney}
               alt="Jeepney"
-              className="w-[260px] rotate-0"
+              className="w-[350px] rotate-[-90deg]"
             />
           </div>
         </div>
