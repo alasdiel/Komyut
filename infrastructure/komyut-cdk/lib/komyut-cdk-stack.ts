@@ -119,25 +119,25 @@ export class KomyutCdkStack extends cdk.Stack {
 			runtime: lambda.Runtime.NODEJS_20_X,
 		});
 
-		// const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
-		// 	entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
-		// 	runtime: lambda.Runtime.NODEJS_20_X,
-		// 	timeout: cdk.Duration.seconds(300),
-		// 	memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
-		// 	environment: {
-		// 		ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
-		// 	},			
+		const fnCalcPlan = new lambdaNJS.NodejsFunction(this, 'CalculatePlanFunction', {
+			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
+			runtime: lambda.Runtime.NODEJS_20_X,
+			timeout: cdk.Duration.seconds(300),
+			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
+			environment: {
+				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
+			},			
 
-		// 	vpc: vpc,
-		// 	vpcSubnets: {
-		// 		subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-		// 	},
-		// 	securityGroups: [sgLambda],
-		// });		
-		// fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
-		// 	actions: ['ssm:GetParameter'],
-		// 	resources: ['*']
-		// }))
+			// vpc: vpc,
+			// vpcSubnets: {
+			// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+			// },
+			// securityGroups: [sgLambda],
+		});		
+		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
+			actions: ['ssm:GetParameter'],
+			resources: ['*']
+		}));
 
 		// Authentication Functions
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
@@ -207,7 +207,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
 			destinationKeyPrefix: 'routepack-bundle',
 		});		
-		// routePackBucket.grantRead(fnCalcPlan);		
+		routePackBucket.grantRead(fnCalcPlan);		
 		//#endregion
 
 		//#region ☁️ CLOUDFRONT DISTRIBUTION
@@ -232,10 +232,10 @@ export class KomyutCdkStack extends cdk.Stack {
 		api.root.addResource('hello-world')
 		.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
 
-		// api.root.addResource('calc-route')
-		// .addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
-		// 	proxy: true,
-		// }));
+		api.root.addResource('calc-plan')
+		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
+			proxy: true,
+		}));
 
 		api.root.addResource('signin')
 		.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
