@@ -1,0 +1,35 @@
+import { create } from 'zustand'
+
+interface RouteLeg {
+  type: string;
+  routeId: string;
+  coordinates: [number, number][];
+};
+
+interface RouteData {
+  legs: RouteLeg[];
+};
+
+interface Position { 
+  lat: number; 
+  lng: number 
+}
+
+interface RouteState {
+  startPos: Position
+  endPos: Position
+  setStartPos: (pos: Position) => void
+  setEndPos: (pos: Position) => void
+  routeData: RouteData | null;
+  setRouteData: (data: RouteData) => void
+}
+
+export const useRouteStore = create<RouteState>((set) => ({
+  startPos: { lat: 0, lng: 0 },
+  endPos: { lat: 0, lng: 0 },
+  setStartPos: (pos) => set({ startPos: pos }),
+  setEndPos: (pos) => set({ endPos: pos }),
+  routeData: null,
+  setRouteData: (data: RouteData) => set({ routeData: data })
+}))
+
