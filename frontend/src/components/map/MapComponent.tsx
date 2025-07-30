@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import maplibregl, { Marker } from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
@@ -38,7 +38,7 @@ const MapComponent = () => {
 		return () => {
 			map.current?.remove();
 		};
-	}, []);
+	}, [stylejson, setStartPos, setEndPos]);
 
 	useEffect(() => {
 		if (!map.current) return;
