@@ -1,82 +1,123 @@
 import { useEffect, useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import maplibregl, { Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 
 
 const MapComponent = () => {
-  const mapContainer = useRef<HTMLDivElement | null>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  const { routeData } = useRouteStore(); 
-  const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
-  useEffect(() => {
-    if (!mapContainer.current) return;
+	const setStartPos = useRouteStore(s => s.setStartPos);
+	const setEndPos = useRouteStore(s => s.setEndPos);
 
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: stylejson,
-      center: [125.6088, 7.15],
-      zoom: 10,
-      minZoom: 8,
-      maxZoom: 14,
-      maxBounds: [
-        [125.204904, 6.795854],
-        [125.892734, 7.516401],
-      ],
-    });
+	const mapContainer = useRef<HTMLDivElement | null>(null);
+	const map = useRef<maplibregl.Map | null>(null);
+	const { routeData } = useRouteStore();
+	const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
-    return () => {
-      map.current?.remove(); 
-    };
-  }, []);
+	useEffect(() => {
+		const initializeMap = () => {
+			if (!mapContainer.current) return;
 
-  useEffect(() => {
-    if (!map.current || !routeData) return;
+			map.current = new maplibregl.Map({
+				container: mapContainer.current,
+				style: stylejson,
+				center: [125.6088, 7.15],
+				zoom: 10,
+				minZoom: 8,
+				maxZoom: 14,
+				maxBounds: [
+					[125.204904, 6.795854],
+					[125.892734, 7.516401],
+				],
+			});
+		}
 
-    routeData.legs.forEach((leg: RouteLeg, index: number) => {
-      const id = `leg-${index}`;
+		const createMarkers = () => {
+			if(!map.current) return;
 
-      if (map.current?.getSource(id)) return;
-      if (!map.current) return;
-      map.current.addSource(id, {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: leg.coordinates.map(([lat, lng]) => [lng, lat]), // [lng, lat]
-          },
-          properties: {
-            type: leg.type,
-            routeId: leg.routeId,
-          },
-        },
-      });
+			let startMarker = new Marker({
+				color: 'red',
+				draggable: true,
+			})
+			.setLngLat([125.588236, 7.050853])
+			.addTo(map.current);	
 
-      map.current.addLayer({
-        id: id,
-        type: 'line',
-        source: id,
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round',
-        },
-        paint: {
-          'line-color': leg.type === 'walk' ? '#888' : '#007aff',
-          'line-width': leg.type === 'walk' ? 3 : 5,
-          ...(leg.type === 'walk' ? { 'line-dasharray': [2, 2] } : {}),
-        },
-      });
-    });
-  }, [routeData]);
+			let endMarker = new Marker({
+				color: 'blue',
+				draggable: true,
+			})
+			.setLngLat([125.642093, 7.132042])
+			.addTo(map.current);	
+			
+			startMarker.on('dragend', () => {
+				setStartPos({
+					lat: startMarker.getLngLat().lat,
+					lng: startMarker.getLngLat().lng,
+				})
+			});
 
-  return (
-    <div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
-      <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
-      <MapRoutingOverlay />
-    </div>
-  );
+			endMarker.on('dragend', () => {
+				setEndPos({
+					lat: endMarker.getLngLat().lat,
+					lng: endMarker.getLngLat().lng,
+				})
+			});
+		}
+
+		initializeMap();
+		createMarkers();
+
+		return () => {
+			map.current?.remove();
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!map.current || !routeData) return;
+
+		routeData.legs.forEach((leg: RouteLeg, index: number) => {
+			const id = `leg-${index}`;
+
+			if (map.current?.getSource(id)) return;
+			if (!map.current) return;
+			map.current.addSource(id, {
+				type: 'geojson',
+				data: {
+					type: 'Feature',
+					geometry: {
+						type: 'LineString',
+						coordinates: leg.coordinates.map(([lat, lng]) => [lng, lat]), // [lng, lat]
+					},
+					properties: {
+						type: leg.type,
+						routeId: leg.routeId,
+					},
+				},
+			});
+
+			map.current.addLayer({
+				id: id,
+				type: 'line',
+				source: id,
+				layout: {
+					'line-join': 'round',
+					'line-cap': 'round',
+				},
+				paint: {
+					'line-color': leg.type === 'walk' ? '#888' : '#007aff',
+					'line-width': leg.type === 'walk' ? 3 : 5,
+					...(leg.type === 'walk' ? { 'line-dasharray': [2, 2] } : {}),
+				},
+			});
+		});
+	}, [routeData]);
+
+	return (
+		<div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
+			<div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+			<MapRoutingOverlay />
+		</div>
+	);
 };
 
 export default MapComponent;
