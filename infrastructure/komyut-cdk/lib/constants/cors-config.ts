@@ -3,7 +3,7 @@ import { Duration } from "aws-cdk-lib";
 
 export const CORS_CONFIG: CorsOptions = {
   allowOrigins: ['*'], // Will specify exact domains after testing
-  allowMethods: ['POST', 'OPTIONS'], // PUT, GET, DELETE
+  allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'], // PUT, GET, DELETE
   allowHeaders: [
     'Content-Type',
     'X-Amz-Date',
