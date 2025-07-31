@@ -212,7 +212,7 @@ export async function transformLegsForFrontend(
     startCoord: [number, number],
     endCoord: [number, number]
 ) {
-    const result: { type: string, routeId: string | null, coordinates: [number, number][] }[] = [];
+    const result: { type: string, routeId: string | null, routeName: string | null, coordinates: [number, number][] }[] = [];
 
     for (const leg of mergedLegs) {
         if (leg.type === 'jeepney' && leg.routeId) {
@@ -233,6 +233,7 @@ export async function transformLegsForFrontend(
                 result.push({
                     type: 'jeepney',
                     routeId: leg.routeId,
+                    routeName: route.routeFile.routeName,
                     coordinates: coords
                 });
             }
@@ -272,6 +273,7 @@ export async function transformLegsForFrontend(
                 result.push({
                     type: 'walk',
                     routeId: null,
+                    routeName: null,
                     coordinates: walkCoords
                 });
             }
