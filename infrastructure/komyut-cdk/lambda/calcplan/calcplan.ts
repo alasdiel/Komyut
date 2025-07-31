@@ -8,6 +8,7 @@ import { calculateFare } from "infrastructure/komyut-cdk/calculation/farecalc";
 let cachedRoutePack: RoutePack | null = null;
 
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN; 
+const ROUTEPACK_BUCKET_NAME = process.env.ROUTEPACK_BUCKET_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
     try {
@@ -21,7 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             // cachedRoutePack = await loadRoutePackFromS3Parallel('komyut-routepack-bucket', 'routepack');
             const time1 = performance.now();
             console.log(`start function loadRoutePackBundle`);
-            cachedRoutePack = await loadRoutePackBundle(`komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 'routepack-bundle');
+            cachedRoutePack = await loadRoutePackBundle(ROUTEPACK_BUCKET_NAME, 'routepack-bundle');
             console.log(`loadRoutePackBundle TOOK ${(performance.now() - time1)}ms`);
             
             if (!cachedRoutePack) {
