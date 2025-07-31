@@ -195,6 +195,38 @@ export class KomyutCdkStack extends cdk.Stack {
 		fnResendVerificationCode.addToRolePolicy(cognitoPolicy);
 		//#endregion
 
+		//#region 🚦 APIGATEWAY DEFINITION
+		const api = new apigw.RestApi(this, 'KomyutRestApi', {
+		defaultCorsPreflightOptions: CORS_CONFIG
+		});
+
+		// Endpoints
+		api.root.addResource('hello-world')
+		.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
+
+		api.root.addResource('calc-plan')
+		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
+			proxy: true,
+		}));
+
+		api.root.addResource('signin')
+		.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
+			proxy: true,
+		}));
+		api.root.addResource('signup')
+		.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
+			proxy: true,
+		}));
+		api.root.addResource('confirm-signup')
+		.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
+			proxy: true,
+		}));
+		api.root.addResource('resend-code')
+		.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
+			proxy: true,
+		}));
+		//#endregion
+
 		//#region 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
 			bucketName: `komyut-routepack-bucket-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`, 
@@ -247,37 +279,5 @@ export class KomyutCdkStack extends cdk.Stack {
 		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
 		});		
 		//#endregion	
-
-		//#region 🚦 APIGATEWAY DEFINITION
-		const api = new apigw.RestApi(this, 'KomyutRestApi', {
-		defaultCorsPreflightOptions: CORS_CONFIG
-		});
-
-		// Endpoints
-		api.root.addResource('hello-world')
-		.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
-
-		api.root.addResource('calc-plan')
-		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
-			proxy: true,
-		}));
-
-		api.root.addResource('signin')
-		.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
-			proxy: true,
-		}));
-		api.root.addResource('signup')
-		.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
-			proxy: true,
-		}));
-		api.root.addResource('confirm-signup')
-		.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
-			proxy: true,
-		}));
-		api.root.addResource('resend-code')
-		.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
-			proxy: true,
-		}));
-		//#endregion
 	}
 }
