@@ -32,7 +32,7 @@ function HeroSection() {
                     Komyut with ease, <br /> no more worries!
                   </h1>
                   <Link to="/app">
-                    <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-12 py-8 rounded-full tracking-wider">
+                    <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-12 py-8 rounded-full tracking-wider cursor-pointer">
                       Get Started Now!
                     </Button>
                   </Link>
