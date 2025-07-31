@@ -6,7 +6,7 @@ import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup } from '../FarePopUp.tsx';
-import { displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
+import { displayEstimatedTime, displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
 
 
 const MapComponent = () => {
@@ -120,7 +120,7 @@ const MapComponent = () => {
 			<MapRoutingOverlay />
 			{routeData && (
 				<FarePopup
-					eta="-- mins"
+					eta={displayEstimatedTime(routeData)}
 					distance={displayTotalDistance(routeData)}
 					legs={populateFarePopupLegs(routeData, routeColors)}					
 				/>
