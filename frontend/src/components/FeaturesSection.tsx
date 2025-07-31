@@ -22,10 +22,10 @@ const FeatureItem = ({ title, shortDesc, fullDesc }: FeatureItemProps) => {
 
       {/* Title + Description */}
       <div className="flex-1">
-        <h3 className="text-[#1E429F] font-bold text-base md:text-lg mb-1">
+        <h3 className="font-epilogue text-[#1E429F] font-bold text-base md:text-lg mb-1 tracking-wider">
           {title}
         </h3>
-        <p className="text-gray-700 text-sm leading-snug">
+        <p className="font-epilogue text-komyut-grey text-sm md:text-lg leading-relaxed tracking-wider">
           {expanded ? fullDesc : shortDesc}
         </p>
       </div>
@@ -35,41 +35,40 @@ const FeatureItem = ({ title, shortDesc, fullDesc }: FeatureItemProps) => {
 
 const featuresData: FeatureItemProps[] = [
   {
-    title: "Name Feature 1",
-    shortDesc: "Lorem ipsum dolor sit amet...",
+    title: "Fare Calculation",
+    shortDesc: "Get a quick estimate of your jeepney fare.",
     fullDesc:
-      "Full description 1: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit.",
+      "Know exactly how much to pay for your route. Komyut calculates your jeepney fare based on LTFRB’s fare matrix, including base fare.",
   },
   {
-    title: "Name Feature 2",
-    shortDesc: "Lorem ipsum dolor sit amet...",
+    title: "Estimated Time of Arrival",
+    shortDesc: "Plan your trip better with arrival estimates.",
     fullDesc:
-      "Full description 2: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit.",
+      "Avoid long waits and unexpected delays. Komyut gives you an estimate of how long your route will take based on your location, time of day, and common traffic conditions in Davao.",
   },
   {
-    title: "Name Feature 3",
-    shortDesc: "Lorem ipsum dolor sit amet...",
+    title: "What Jeepney to Ride",
+    shortDesc: "Get clear route suggestions based on your destination.",
     fullDesc:
-      "Full description 3: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit.",
+      "Confused about which jeepney to take? Komyut suggests the best route from Point A to B, including specific jeepney codes, stops, and where to transfer if needed.",
   },
   {
-    title: "Name Feature 4",
-    shortDesc: "Lorem ipsum dolor sit amet...",
+    title: "Map View",
+    shortDesc: "Visualize your route with an interactive map.",
     fullDesc:
-      "Full description 4: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit.",
+      "See the full picture. Our map shows your current location, nearby terminals, routes, and stops so you can navigate Davao’s jeepney system with confidence.",
   },
-];
+]; 
+
 
 const FeatureSection = () => {
   return (
     <section className="px-4 md:px-8 py-16 bg-white">
       <div className="max-w-7xl mx-auto md:text-left">
-        {/* Section Heading */}
-        <h2 className="text-komyut-green font-extrabold uppercase text-lg tracking-wider mb-4">
+        <h2 className="font-epilogue text-komyut-green font-extrabold uppercase text-lg tracking-wider mb-4">
           Features
         </h2>
 
-        {/* Feature Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
           {featuresData.map((feature, idx) => (
             <FeatureItem key={idx} {...feature} />
@@ -79,5 +78,6 @@ const FeatureSection = () => {
     </section>
   );
 };
+
 
 export default FeatureSection;
