@@ -5,39 +5,31 @@ import type { LocationResult } from '../components/RouteSearchPopup';
 export function TestPage() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleRouteSubmit = async (start: LocationResult, end: LocationResult) => {
-    try {
-      const response = await fetch('https://3ant8fvf5i.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route',{ // Edit this URL later
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            startPos: {
-              lat: start.coordinates[1], 
-              lng: start.coordinates[0] 
-            },
-            endPos: {
-              lat: end.coordinates[1],
-              lng: end.coordinates[0]
-            }
-          })
+const handleRouteSubmit = async (start: LocationResult, end: LocationResult) => {
+  try {
+    const response = await fetch('https://3ant8fvf5i.execute-api.ap-southeast-1.amazonaws.com/prod/calc-route', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startPos: {
+          lat: start.coordinates[1],
+          lng: start.coordinates[0]
+        },
+        endPos: {
+          lat: end.coordinates[1],
+          lng: end.coordinates[0]
         }
-      );
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Route calculation result:', data);
-      
-      return data;
-    } catch (error) {
-      console.error('Error calculating route:', error);
-      throw error; 
-    }
-  };
+      })
+    });
+    
+    const routeData = await response.json();
+    // Handle the response (show route, fare, etc.)
+    console.log('Route data:', routeData);
+  } catch (error) {
+    console.error('Route calculation failed:', error);
+    // Show error to user
+  }
+};
 
   return (
     <div className="p-4">

@@ -14,6 +14,16 @@ export interface RouteSearchPopupProps {
   onRouteSubmit: (start: LocationResult, end: LocationResult) => void;
 }
 
+interface MapTilerFeature {
+  id: string;
+  text: string;
+  place_name: string;
+  center: [number, number];
+}
+
+interface MapTilerGeocodingResponse {
+  feature: MapTilerFeature[];
+}
 export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearchPopupProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [dragPosition, setDragPosition] = useState(0);
@@ -42,7 +52,7 @@ export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearch
   }, []);
 
   // Search the inputted locations using MapTiler API
-  const searchLocations = async (query: string) => {
+    const searchLocations = async (query: string): Promise<LocationResult[]> => {
     if (!query) return [];
     
     try {
@@ -50,9 +60,9 @@ export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearch
       const response = await fetch(
         `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=wVFg9k5F2aG3UrMMlWSv` // Replace with maptiler api url or wtv
       );
-      const data = await response.json();
+      const data = await response.json() as MapTilerGeocodingResponse;
       
-      return data.features.map((feature: any) => ({
+      return data.feature.map((feature: MapTilerFeature) => ({
         id: feature.id,
         name: feature.text,
         address: feature.place_name,
@@ -66,7 +76,7 @@ export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearch
     }
   };
 
-  // Handle search with debounce
+  // Handle search with debounce timer
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (startQuery) {
