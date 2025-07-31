@@ -25,7 +25,7 @@ function HeroSection() {
                 {/* Left: Text */}
                 <div className="max-w-xl space-y-8 text-center md:text-left z-10">
                   <h3 className="font-epilogue text-komyut-grey text-lg tracking-wide">
-                    Here is a caption.
+                    Helping commuters navigate smarter, <strong>one ride at a time.</strong>
                   </h3>
                   <h1 className="font-epilogue text-4xl md:text-5xl font-extrabold text-komyut-blue leading-tight tracking-wider">
                     Lorem ipsum <br /> dolor sit amet!
@@ -46,7 +46,7 @@ function HeroSection() {
       <div className="block md:hidden">
         <div className="bg-gray-200 rounded-[40px] shadow-md py-12 px-6 text-center">
           <h3 className="font-epilogue text-komyut-grey text-base tracking-wide mb-2">
-            Here is a caption.
+            Helping commuters navigate smarter, <strong>one ride at a time.</strong>
           </h3>
           <h1 className="font-epilogue text-3xl font-extrabold text-komyut-blue leading-snug mb-6">
             Lorem ipsum <br /> dolor sit amet!
@@ -73,7 +73,7 @@ function HeroSection() {
             {/* Text */}
             <div className="max-w-lg space-y-6 text-left">
               <h3 className="font-epilogue text-komyut-grey text-lg tracking-wide">
-                Here is a caption.
+                Helping commuters navigate smarter, <strong>one ride at a time.</strong>
               </h3>
               <h1 className="font-epilogue text-4xl font-extrabold text-komyut-blue leading-tight tracking-wider">
                 Lorem ipsum <br /> dolor sit amet!

@@ -23,7 +23,7 @@ export default function Navbar() {
             alt="Logo"
             className="w-12 h-12 rounded-full"
           />
-          <div className="text-2xl font-bold text-gray-900 font-epilogue">KOMYUT</div>
+          <div className="text-2xl font-bold text-komyut-grey font-epilogue">KOMYUT</div>
         </div>
 
         {/* Hamburger (only shows on small screens) */}
