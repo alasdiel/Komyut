@@ -44,7 +44,7 @@ export const displayTotalDistance = (routeData: RouteData) => {
     return `${totalDistance.toFixed(2)} km`;
 }
 
-const ESTIMATED_JEEP_SPEED = 30; //In KPH
+const ESTIMATED_JEEP_SPEED = 25; //In KPH
 export const displayEstimatedTime = (routeData: RouteData) => {
     const totalDistance = getDistance(routeData);
     const totalTime = (totalDistance / ESTIMATED_JEEP_SPEED) * 60;
