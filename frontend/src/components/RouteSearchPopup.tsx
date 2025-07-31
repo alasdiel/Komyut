@@ -25,6 +25,8 @@ interface MapTilerGeocodingResponse {
   feature: MapTilerFeature[];
 }
 export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearchPopupProps) {
+  const VITE_MAPTILER_API = import.meta.env.VITE_MAPTILER_API;
+
   const [isMobile, setIsMobile] = useState(false);
   const [dragPosition, setDragPosition] = useState(0);
   const [startY, setStartY] = useState(0);
@@ -58,7 +60,7 @@ export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearch
     try {
       setIsSearching(true);
       const response = await fetch(
-        `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=wVFg9k5F2aG3UrMMlWSv` // Replace with maptiler api url or wtv
+        VITE_MAPTILER_API // Replace with maptiler api url or wtv
       );
       const data = await response.json() as MapTilerGeocodingResponse;
       
