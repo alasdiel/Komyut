@@ -67,7 +67,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute top-4 right-4 p-3 rounded-lg shadow-md z-10 hover:shadow-lg transition-shadow"
+        className="absolute top-4 right-4 p-3 rounded-lg shadow-md z-10 hover:shadow-lg transition-shadow bg-white"
       >
         {isOpen ? <BusIcon className="w-6 h-6 text-gray-500"/> : <BusIcon className="w-6 h-6" />}
       </button>

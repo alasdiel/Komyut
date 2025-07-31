@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useColorMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
-import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup } from '../FarePopUp.tsx';
 import { displayEstimatedTime, displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
+import { CalculateButton } from './CalculateButton.tsx';
 
 
 const MapComponent = () => {
@@ -116,15 +116,15 @@ const MapComponent = () => {
 
 	return (
 		<div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
-			<div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
-			<MapRoutingOverlay />
+			<div ref={mapContainer} style={{ height: '100%', width: '100%' }} />			
 			{routeData && (
 				<FarePopup
 					eta={displayEstimatedTime(routeData)}
 					distance={displayTotalDistance(routeData)}
-					legs={populateFarePopupLegs(routeData, routeColors)}					
+					legs={populateFarePopupLegs(routeData, routeColors)}															
 				/>
-			)}			
+			)}
+			<CalculateButton/>
 		</div>
 	);
 };
