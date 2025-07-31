@@ -58,7 +58,7 @@ const featuresData: FeatureItemProps[] = [
     fullDesc:
       "See the full picture. Our map shows your current location, nearby terminals, routes, and stops so you can navigate Davao’s jeepney system with confidence.",
   },
-];
+]; 
 
 
 const FeatureSection = () => {
