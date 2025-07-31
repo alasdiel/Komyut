@@ -28,7 +28,7 @@ function HeroSection() {
                     Helping commuters navigate smarter, <strong>one ride at a time.</strong>
                   </h3>
                   <h1 className="font-epilogue text-4xl md:text-5xl font-extrabold text-komyut-blue leading-tight tracking-wider">
-                    Lorem ipsum <br /> dolor sit amet!
+                    Komyut with ease, <br /> no more worries!
                   </h1>
                   <Link to="/app">
                     <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-12 py-8 rounded-full tracking-wider">
@@ -46,10 +46,10 @@ function HeroSection() {
       <div className="block md:hidden">
         <div className="bg-gray-200 rounded-[40px] shadow-md py-12 px-6 text-center">
           <h3 className="font-epilogue text-komyut-grey text-base tracking-wide mb-2">
-            Helping commuters navigate smarter, <strong>one ride at a time.</strong>
+            Helping commuters navigate smarter, <br></br><strong>one ride at a time.</strong>
           </h3>
           <h1 className="font-epilogue text-3xl font-extrabold text-komyut-blue leading-snug mb-6">
-            Lorem ipsum <br /> dolor sit amet!
+            Komyut with ease, <br /> no more worries!
           </h1>
           <Link to="/app">
             <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-lg px-8 py-6 rounded-full tracking-wide mb-8">
@@ -72,11 +72,11 @@ function HeroSection() {
           <div className="flex items-center justify-between max-w-5xl mx-auto gap-6">
             {/* Text */}
             <div className="max-w-lg space-y-6 text-left">
-              <h3 className="font-epilogue text-komyut-grey text-lg tracking-wide">
+              <h3 className="font-epilogue text-komyut-grSey text-lg tracking-wide">
                 Helping commuters navigate smarter, <strong>one ride at a time.</strong>
               </h3>
               <h1 className="font-epilogue text-4xl font-extrabold text-komyut-blue leading-tight tracking-wider">
-                Lorem ipsum <br /> dolor sit amet!
+                Komyut with ease, <br /> no more worries!
               </h1>
               <Link to="/app">
                 <Button className="font-epilogue bg-komyut-orange hover:bg-orange-600 text-white font-bold text-xl px-10 py-7 rounded-full tracking-wider">
