@@ -2,7 +2,7 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import fetch from 'node-fetch';
 
-function getS3Client(): S3Client {
+export function getS3Client(): S3Client {
 	const region = process.env.AWS_REGION;
 	if (!region) throw new Error('AWS_REGION is not set');
 	return new S3Client({ region });

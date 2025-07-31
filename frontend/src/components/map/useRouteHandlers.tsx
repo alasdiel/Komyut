@@ -1,3 +1,4 @@
+import { loadCdkConfig } from '@/lib/utils';
 import { useRouteStore } from './useRouteStore'
 
 export function useRouteHandlers() {
@@ -27,7 +28,9 @@ export function useRouteHandlers() {
   };
 
   const handleClick = async () => {
-    const response = await fetch(`${import.meta.env.VITE_ROUTECALC_API_CALL}/calc-plan/`, {
+    const cdkCfg = await loadCdkConfig();
+
+    const response = await fetch(`${cdkCfg.apiBaseUrl}/calc-plan/`, {
       method: 'POST',
       mode: 'cors',
       headers: {

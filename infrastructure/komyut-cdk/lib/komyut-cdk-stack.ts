@@ -14,7 +14,7 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { CORS_CONFIG } from './constants/cors-config';
 
 import * as path from 'path';
-import * as fs from 'fs';
+import * as cr from 'aws-cdk-lib/custom-resources';
 
 import { CONSTS } from "@shared/consts";
 
@@ -85,32 +85,33 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		//#region 🏊 COGNITO USER POOL
 		const userPool = new cognito.UserPool(this, 'KomyutUserPool', {
-		userPoolName: 'KomyutUsers',
-		selfSignUpEnabled: true, // Allow users to sign up
-		signInAliases: { email: true }, // Allow sign in with email
-		autoVerify: { email: true },
-		userVerification: {
-			emailSubject: 'Your Komyut Verification Code',
-			emailBody: 'Your verification code is: {####}', // Code will replace {####}
-			emailStyle: cognito.VerificationEmailStyle.CODE
-		},
-		passwordPolicy: {
-			minLength: 6,
-			requireDigits: false,
-			requireSymbols: false,
-			requireUppercase: false,
-			requireLowercase: false, // All optional, adjust as needed
-		},
-		removalPolicy: cdk.RemovalPolicy.DESTROY, 
+			userPoolName: 'KomyutUsers',
+			selfSignUpEnabled: true, // Allow users to sign up
+			signInAliases: { email: true }, // Allow sign in with email
+			autoVerify: { email: true },
+			userVerification: {
+				emailSubject: 'Your Komyut Verification Code',
+				emailBody: 'Your verification code is: {####}', // Code will replace {####}
+				emailStyle: cognito.VerificationEmailStyle.CODE
+			},
+			passwordPolicy: {
+				minLength: 6,
+				requireDigits: false,
+				requireSymbols: false,
+				requireUppercase: false,
+				requireLowercase: false, // All optional, adjust as needed
+			},
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
 		});
 
 		const userPoolClient = new cognito.UserPoolClient(this, 'KomyutUserPoolClient', {
 			userPool,
-			authFlows: { userPassword: true }, 
+			authFlows: { userPassword: true },
 		});
 
 		new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
 		new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
+		//#endregion
 
 		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
 		// ANTHONY'S WORK
@@ -126,14 +127,14 @@ export class KomyutCdkStack extends cdk.Stack {
 			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
 			environment: {
 				ROUTEPACK_BUCKET_SUFFIX: process.env.ROUTEPACK_BUCKET_SUFFIX!,
-			},			
+			},
 
 			// vpc: vpc,
 			// vpcSubnets: {
 			// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
 			// },
 			// securityGroups: [sgLambda],
-		});		
+		});
 		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
 			actions: ['ssm:GetParameter'],
 			resources: ['*']
@@ -144,7 +145,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/confirmSignup/confirmSignup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			environment: {
-				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
 				COGNITO_USER_POOL_ID: userPool.userPoolId,
 			},
 		});
@@ -153,7 +154,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/signin/signin.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			environment: {
-				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
 				COGNITO_USER_POOL_ID: userPool.userPoolId,
 			},
 		});
@@ -162,7 +163,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/signup/signup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			environment: {
-				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
 				COGNITO_USER_POOL_ID: userPool.userPoolId,
 			},
 		});
@@ -171,22 +172,22 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/resendVerificationCode/resendVerificationCode.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			environment: {
-				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId, 
+				COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
 				COGNITO_USER_POOL_ID: userPool.userPoolId,
 			},
 		});
 
 		// Add Cognito permissions to all auth functions
 		const cognitoPolicy = new iam.PolicyStatement({
-		actions: [
-			'cognito-idp:SignUp',
-			'cognito-idp:ConfirmSignUp',
-			'cognito-idp:InitiateAuth',
-			'cognito-idp:AdminConfirmSignUp',
-		],
-		resources: [
-			`arn:aws:cognito-idp:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:userpool/${process.env.COGNITO_USER_POOL_ID}`
-		],
+			actions: [
+				'cognito-idp:SignUp',
+				'cognito-idp:ConfirmSignUp',
+				'cognito-idp:InitiateAuth',
+				'cognito-idp:AdminConfirmSignUp',
+			],
+			resources: [
+				`arn:aws:cognito-idp:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:userpool/${process.env.COGNITO_USER_POOL_ID}`
+			],
 		});
 
 		fnSignup.addToRolePolicy(cognitoPolicy);
@@ -195,51 +196,20 @@ export class KomyutCdkStack extends cdk.Stack {
 		fnResendVerificationCode.addToRolePolicy(cognitoPolicy);
 		//#endregion
 
-		//#region 🚦 APIGATEWAY DEFINITION
-		const api = new apigw.RestApi(this, 'KomyutRestApi', {
-		defaultCorsPreflightOptions: CORS_CONFIG
-		});
-
-		// Endpoints
-		api.root.addResource('hello-world')
-		.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
-
-		api.root.addResource('calc-plan')
-		.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
-			proxy: true,
-		}));
-
-		api.root.addResource('signin')
-		.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
-			proxy: true,
-		}));
-		api.root.addResource('signup')
-		.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
-			proxy: true,
-		}));
-		api.root.addResource('confirm-signup')
-		.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
-			proxy: true,
-		}));
-		api.root.addResource('resend-code')
-		.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
-			proxy: true,
-		}));
-		//#endregion
-
 		//#region 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
-			bucketName: `komyut-routepack-bucket-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`, 
+			bucketName: `komyut-routepack-bucket-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
-			publicReadAccess: false,						
+			publicReadAccess: false,
 		});
+		routePackBucket.grantRead(fnCalcPlan);
+		
 		new s3deploy.BucketDeployment(this, 'RoutePackBundleData', {
 			destinationBucket: routePackBucket,
 			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
 			destinationKeyPrefix: 'routepack-bundle',
 		});		
-		routePackBucket.grantRead(fnCalcPlan);		
 
 		const distPath = path.resolve(process.cwd(), '../../frontend/dist');
 		console.log(distPath);
@@ -252,7 +222,7 @@ export class KomyutCdkStack extends cdk.Stack {
 				ignorePublicAcls: false,
 				blockPublicPolicy: false,
 				restrictPublicBuckets: false,
-			}),	
+			}),
 			websiteIndexDocument: 'index.html',
 			websiteErrorDocument: 'index.html',
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -262,22 +232,82 @@ export class KomyutCdkStack extends cdk.Stack {
 		new s3deploy.BucketDeployment(this, 'DeployFrontend', {
 			sources: [s3deploy.Source.asset(distPath)],
 			destinationBucket: frontendBucket,
-		})
-
+		});
 
 		//#endregion
 
 		//#region ☁️ CLOUDFRONT DISTRIBUTION
 		const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
-		defaultBehavior: {
-			origin: new origins.S3Origin(routePackBucket),
-			allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-			viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-			cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED, 
-		},
-		defaultRootObject: 'routepack-bundle/routepack.json',
-		priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
-		});		
+			defaultBehavior: {
+				origin: new origins.S3Origin(routePackBucket),
+				allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+			},
+			defaultRootObject: 'routepack-bundle/routepack.json',
+			priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
+		});
 		//#endregion	
+
+		//#region 🚦 APIGATEWAY DEFINITION
+		const api = new apigw.RestApi(this, 'KomyutRestApi', {
+			defaultCorsPreflightOptions: CORS_CONFIG
+		});
+
+		// Endpoints
+		api.root.addResource('hello-world')
+			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
+
+		api.root.addResource('calc-plan')
+			.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
+				proxy: true,
+			}));
+
+		api.root.addResource('signin')
+			.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
+				proxy: true,
+			}));
+		api.root.addResource('signup')
+			.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
+				proxy: true,
+			}));
+		api.root.addResource('confirm-signup')
+			.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
+				proxy: true,
+			}));
+		api.root.addResource('resend-code')
+			.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
+				proxy: true,
+			}));
+
+		//FRONTEND CONFIG
+		new cr.AwsCustomResource(this, 'PostDeployFrontendConfigUpload', {
+			onCreate: {
+				service: 'S3',
+				action: 'putObject',
+				parameters: {
+					Bucket: frontendBucket.bucketName,
+					Key: 'cdk-config.json',
+					Body: JSON.stringify({ apiBaseUrl: api.url }),
+					ContentType: 'application/json',
+				},
+				physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString()), // forces run
+			},
+			onUpdate: {
+				service: 'S3',
+				action: 'putObject',
+				parameters: {
+					Bucket: frontendBucket.bucketName,
+					Key: 'cdk-config.json',
+					Body: JSON.stringify({ apiBaseUrl: api.url }),
+					ContentType: 'application/json',
+				},
+				physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString()), // forces run
+			},
+			policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+				resources: [frontendBucket.arnForObjects('*')]
+			})
+		});
+		//#endregion
 	}
 }
