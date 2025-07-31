@@ -23,6 +23,7 @@
     "typescript": "~5.6.3"
   },
   "dependencies": {
+    "@aws-cdk/aws-s3-deployment": "^1.203.0",
     "@aws-sdk/client-s3": "^3.842.0",
     "@msgpack/msgpack": "^3.1.2",
     "aws-cdk-lib": "2.202.0",

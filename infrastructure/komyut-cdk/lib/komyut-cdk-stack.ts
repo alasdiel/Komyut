@@ -197,7 +197,7 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		//#region 🪣 S3 BUCKETS
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
-			bucketName: `komyut-routepack-bucket-${process.env.ROUTEPACK_BUCKET_SUFFIX}`, 
+			bucketName: `komyut-routepack-bucket-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`, 
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 			publicReadAccess: false,						
@@ -208,6 +208,30 @@ export class KomyutCdkStack extends cdk.Stack {
 			destinationKeyPrefix: 'routepack-bundle',
 		});		
 		routePackBucket.grantRead(fnCalcPlan);		
+
+		const distPath = path.resolve(process.cwd(), '../../frontend/dist');
+		console.log(distPath);
+
+		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
+			bucketName: `komyut-frontend-prod-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
+			publicReadAccess: true,
+			blockPublicAccess: new s3.BlockPublicAccess({
+				blockPublicAcls: false,
+				ignorePublicAcls: false,
+				blockPublicPolicy: false,
+				restrictPublicBuckets: false,
+			}),	
+			websiteIndexDocument: 'index.html',
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			autoDeleteObjects: true,
+		});
+
+		new s3deploy.BucketDeployment(this, 'DeployFrontend', {
+			sources: [s3deploy.Source.asset(distPath)],
+			destinationBucket: frontendBucket,
+		})
+
+
 		//#endregion
 
 		//#region ☁️ CLOUDFRONT DISTRIBUTION
