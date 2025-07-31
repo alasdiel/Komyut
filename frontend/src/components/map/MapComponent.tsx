@@ -1,14 +1,20 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useRouteStore, type RouteLeg } from './useRouteStore.tsx';
+import { useColorMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import MapRoutingOverlay from './MapRoutingOverlay.tsx';
 import { createMarkers } from './MarkerManager.tsx';
+import { getPathlineStyle } from './PathStyler.ts';
+import { FarePopup } from '../FarePopUp.tsx';
+import { displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
 
 
 const MapComponent = () => {
 	const setStartPos = useRouteStore(s => s.setStartPos);
 	const setEndPos = useRouteStore(s => s.setEndPos);
+
+	const routeColors = useColorMapStore(s => s.routeColors);
+	const setRouteColor = useColorMapStore(s => s.setRouteColor);
 
 	const mapContainer = useRef<HTMLDivElement | null>(null);
 	const map = useRef<maplibregl.Map | null>(null);
@@ -85,32 +91,40 @@ const MapComponent = () => {
 					},
 				});
 
+				const pathStyle = getPathlineStyle(leg);
+				if(leg.type === 'jeepney') {
+					const color = pathStyle!['line-color'] as string;
+					setRouteColor(leg.routeId!, color);
+				}
 				map.current.addLayer({
-					id: id,
-					type: 'line',
+					id: id,					
 					source: id,
+					type: 'line',
 					layout: {
 						'line-join': 'round',
 						'line-cap': 'round',
 					},
-					paint: {
-						'line-color': leg.type === 'walk' ? '#888' : '#007aff',
-						'line-width': leg.type === 'walk' ? 3 : 5,
-						...(leg.type === 'walk' ? { 'line-dasharray': [2, 2] } : {}),
-					},
+					paint: pathStyle
 				});
 			});
 		}
 
 		clearOldLegs();
-		drawLegs();
+		drawLegs();		
 		
-	}, [routeData]);
+	}, [routeData, setRouteColor]);
 
 	return (
 		<div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
 			<div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
 			<MapRoutingOverlay />
+			{routeData && (
+				<FarePopup
+					eta="-- mins"
+					distance={displayTotalDistance(routeData)}
+					legs={populateFarePopupLegs(routeData, routeColors)}					
+				/>
+			)}			
 		</div>
 	);
 };
