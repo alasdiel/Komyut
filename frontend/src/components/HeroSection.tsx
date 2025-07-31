@@ -9,13 +9,14 @@ function HeroSection() {
       {/* Desktop View */}
       <div className="hidden lg:block relative">
         {/* Jeepney - cropped and rotated upright */}
-        <div className="absolute right-[-3.8rem] top-1/2 -translate-y-1/2 z-10 overflow-hidden">
+        <div className="absolute right-[-3.8rem] top-1/2 -translate-y-1/2 z-10 overflow-hidden pointer-events-none">
           <img
             src={jeepney}
             alt="Jeepney"
             className="w-[570px] rotate-[-90deg] origin-center"
           />
         </div>
+
 
         {/* Grey Box Content */}
         <div className="relative bg-gray-200 rounded-[40px] shadow-md overflow-hidden min-h-[350px] py-20">
