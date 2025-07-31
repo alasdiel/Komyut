@@ -10,7 +10,7 @@ module.exports = {
         epilogue: ['Epilogue', 'sans-serif'],   
       },
       colors: {
-        'komyutGreen': '#349C1C',
+        komyutGreen: '#349C1C',
         komyutOrange: '#FC711C',
         komyutLightOrange: '#FDA23E',
         komyutBlue: '#1F4D9D',
