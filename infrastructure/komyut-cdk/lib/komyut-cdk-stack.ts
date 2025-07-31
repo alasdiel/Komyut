@@ -213,7 +213,7 @@ export class KomyutCdkStack extends cdk.Stack {
 		console.log(distPath);
 
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
-			bucketName: `komyut-frontend-prod-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
+			bucketName: `komyut-frontend-dev-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
 			publicReadAccess: true,
 			blockPublicAccess: new s3.BlockPublicAccess({
 				blockPublicAcls: false,
@@ -222,6 +222,7 @@ export class KomyutCdkStack extends cdk.Stack {
 				restrictPublicBuckets: false,
 			}),	
 			websiteIndexDocument: 'index.html',
+			websiteErrorDocument: 'index.html',
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 		});
