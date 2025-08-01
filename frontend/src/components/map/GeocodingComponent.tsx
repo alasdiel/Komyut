@@ -11,6 +11,8 @@ export default function GeocodingComponent({}) {
   const setStartPos = useRouteStore((s) => s.setStartPos);
   const setEndPos = useRouteStore((s) => s.setEndPos);
   const [ isMobile, setIsMobile ] = useState(false);
+  const [open, setOpen] = useState(false);
+  const toggleDropdown = () => setOpen(!open);
   useEffect(() => {
       const checkIfMobile = () => {
         setIsMobile(window.innerWidth <= 768);
@@ -35,6 +37,9 @@ export default function GeocodingComponent({}) {
         <GeocodingControl
           apiKey={import.meta.env.VITE_MAPTILER_KEY}
           mapController={mapController}
+          bbox={[125.204904, 6.795854, 125.892734, 7.516401]}
+          flyTo={false}
+          noResultsMessage={"No results found"}
           placeholder={`Enter ${label.toLowerCase()}`}
           onSelect={(feature) => {
             console.log('Selected feature:', feature);
@@ -71,14 +76,29 @@ export default function GeocodingComponent({}) {
 
   return (
     <LayoutWrapper>
+      <button
+        onClick={toggleDropdown}
+        className="mx-auto mb-4 px-4 py-2 bg-orange-500 text-white font-medium rounded hover:bg-orange-600 transition w-full"
+      >
+        {open ? 'Close Navigation' : 'Open Navigation'}
+      </button>
+
       <h2 className="flex justify-center text-xl font-bold text-orange-500 mb-4 text-center">Plan Your Route</h2>
+      {open && (
       <div className="flex flex-col gap-10 my-5">
-        <GeocoderField label="Start Point" onSelect={setStartPos} />
-        <GeocoderField label="End Point" onSelect={setEndPos} />
-      </div>
+        <div className="mb-50">
+          <GeocoderField label="Start Point" onSelect={setStartPos} />
+        </div>
+        <div className="mb-50">
+          <GeocoderField label="End Point" onSelect={setEndPos} />
+        </div>
+      
       <div className="flex justify-center">
         <CalculateButton />
       </div>
+    </div>
+      )}
+      
     </LayoutWrapper>
   );
 }
