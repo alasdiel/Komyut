@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import komyutLogo from "@/assets/komyut-logo.svg";
 
 function SignIn() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -34,7 +32,6 @@ function SignIn() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle Cognito-specific errors
         if (data.code === 'UserNotConfirmedException') {
           navigate('/verify-email', { state: { email: formData.email } });
           return;
@@ -42,13 +39,11 @@ function SignIn() {
         throw new Error(data.error || 'Sign in failed');
       }
 
-      // Save access tokens and redirect the user
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       navigate('/app');
 
-
-      } catch (err: unknown) {
+    } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else if (typeof err === 'string') {
@@ -57,18 +52,22 @@ function SignIn() {
         setError('Sign in failed. Please try again.');
       }
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-orange-500 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-10 h-10 rounded-full bg-gray-300 mb-2"></div>
-          <h1 className="text-2xl font-bold text-center text-blue-800">
-            Sign In to Komyut!
-          </h1>
+    <div className="min-h-screen bg-orange-500 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-800">Sign in to</h1>
+          <img
+            src={komyutLogo}
+            alt="Komyut Logo"
+            className="h-6 sm:h-8 object-contain"
+          />
         </div>
 
+        {/* Form */}
         <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm font-medium text-gray-700">Email</label>
@@ -104,11 +103,12 @@ function SignIn() {
             {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
 
-          <div className="flex justify-between">
-            <Link to="/sign-up" className="text-sm text-blue-600 hover:underline">
+          {/* Links */}
+          <div className="flex flex-col sm:flex-row sm:justify-between text-sm text-center sm:text-left gap-2 mt-2">
+            <Link to="/sign-up" className="text-blue-600 hover:underline">
               Create account
             </Link>
-            <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline">
               Forgot password?
             </Link>
           </div>
