@@ -7,7 +7,7 @@ export function CalculateButton() {
         <div className="relative">
             <button
                 onClick={handleClick}
-                className="py-3 px-6 rounded-lg shadow-md z-10 hover:shadow-lg transition bg-komyut-orange text-komyut-white font-epilogue font-bold"
+                className="w-full py-3 px-4 rounded-lg shadow-md z-10 hover:shadow-lg transition bg-komyut-orange text-komyut-white font-epilogue font-bold"
             >
                 <p
                     className="font-epilogue font-bold inline-block"
