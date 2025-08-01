@@ -291,7 +291,7 @@ export class KomyutCdkStack extends cdk.Stack {
 					Body: JSON.stringify({ apiBaseUrl: api.url }),
 					ContentType: 'application/json',
 				},
-				physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString()), // forces run
+				physicalResourceId: cr.PhysicalResourceId.of('PostDeployFrontendConfigUploadFixed')
 			},
 			onUpdate: {
 				service: 'S3',
@@ -302,7 +302,7 @@ export class KomyutCdkStack extends cdk.Stack {
 					Body: JSON.stringify({ apiBaseUrl: api.url }),
 					ContentType: 'application/json',
 				},
-				physicalResourceId: cr.PhysicalResourceId.of(Date.now().toString()), // forces run
+				physicalResourceId: cr.PhysicalResourceId.of('PostDeployFrontendConfigUploadFixed')
 			},
 			policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
 				resources: [frontendBucket.arnForObjects('*')]
