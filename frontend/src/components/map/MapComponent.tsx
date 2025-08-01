@@ -7,10 +7,15 @@ import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup } from '../FarePopUp.tsx';
 import { displayEstimatedTime, displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
 import { CalculateButton } from './CalculateButton.tsx';
+import { useMapStore } from './useMapStore';
+import { createMapLibreGlMapController } from '@maptiler/geocoding-control/maplibregl-controller';
+
 
 
 const MapComponent = () => {
-	const setStartPos = useRouteStore(s => s.setStartPos);
+  const setMapInstance = useMapStore((s) => s.setMap);
+  const setMapController = useMapStore((s) => s.setMapController);
+  const setStartPos = useRouteStore(s => s.setStartPos);
 	const setEndPos = useRouteStore(s => s.setEndPos);
 
 	const routeColors = useColorMapStore(s => s.routeColors);
@@ -30,23 +35,32 @@ const MapComponent = () => {
 			center: [125.6088, 7.15],
 			zoom: 10,
 			minZoom: 8,
-			maxZoom: 14,
+			maxZoom: 17,
 			maxBounds: [
 				[125.204904, 6.795854],
 				[125.892734, 7.516401],
 			],
 		});
+    
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-		if(map.current) {
-			createMarkers(map.current, { setStartPos, setEndPos });
-		}
+    map.current.on('load', () => {
+      setMapInstance(map.current!);
+      setMapController(createMapLibreGlMapController(map.current!, maplibregl));
+      createMarkers(map.current!, { setStartPos, setEndPos });
+    });
 
-		return () => {
-			map.current?.remove();
-		};
-	}, [stylejson, setStartPos, setEndPos]);
+    return () => {
+    map.current?.remove();
+  };
+}, [stylejson, setStartPos, setEndPos, setRouteColor, setMapInstance, setMapController]);
 
-	useEffect(() => {
+// 		if(map.current) {
+// 			createMarkers(map.current, { setStartPos, setEndPos });
+// 		}
+// 	
+//
+  useEffect(() => {
 		if (!map.current) return;
 
 		if (!map.current.isStyleLoaded()) {
