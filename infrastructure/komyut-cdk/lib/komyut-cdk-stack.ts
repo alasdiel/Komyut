@@ -54,7 +54,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
 			
 			machineImage: ec2.MachineImage.genericLinux({
-				'ap-southeast-1': 'ami-0714c5f5fa186c34d'
+				'ap-southeast-1': 'ami-09957f087e462106d'
 			}),
 
 			blockDevices: [{
