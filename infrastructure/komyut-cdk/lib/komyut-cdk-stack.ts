@@ -145,10 +145,8 @@ export class KomyutCdkStack extends cdk.Stack {
 			autoDeleteObjects: true,
 		});
 
-		new s3deploy.BucketDeployment(this, 'DeployFrontend', {
-			sources: [s3deploy.Source.asset(distPath)],
-			destinationBucket: frontendBucket,
-		});
+		// The DeployFrontend BucketDeployment is at the very last part of the cdk declaration
+		// this is a workaround for an issue
 
 		//#endregion
 
@@ -279,23 +277,17 @@ export class KomyutCdkStack extends cdk.Stack {
 			.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
 				proxy: true,
 			}));
+		
+		//#endregion
 
-		//FRONTEND CONFIG
-		new cr.AwsCustomResource(this, 'PostDeployFrontendConfigUpload', {
-			onUpdate: {
-				service: 'S3',
-				action: 'putObject',
-				parameters: {
-					Bucket: frontendBucket.bucketName,
-					Key: 'cdk-config.json',
-					Body: JSON.stringify({ apiBaseUrl: api.url }),
-					ContentType: 'application/json',
-				},
-				physicalResourceId: cr.PhysicalResourceId.of('PostDeployFrontendConfigUploadFixed')
-			},
-			policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
-				resources: [frontendBucket.arnForObjects('*')]
-			})
+		//#region FRONTEND BUCKET DEPLOYMENT
+		new s3deploy.BucketDeployment(this, 'DeployFrontend', {
+			sources: [
+				s3deploy.Source.asset(distPath),
+				s3deploy.Source.data('cdk-config.json', JSON.stringify({ apiBaseUrl: api.url })),	
+			],
+			destinationBucket: frontendBucket,	
+			prune: false,					
 		});
 		//#endregion
 	}

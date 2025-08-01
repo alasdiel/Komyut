@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import PasswordInput from '@/components/PasswordInput'; // Adjust the path as needed
-import { VerificationPopup } from '@/components/VerificationPopup'; // Import the popup component
+import PasswordInput from '@/components/PasswordInput';
+import { VerificationPopup } from '@/components/VerificationPopup';
+import komyutLogo from "@/assets/komyut-logo.svg";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -24,11 +25,7 @@ function SignUp() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -43,8 +40,7 @@ function SignUp() {
       });
       const data = await response.json();
       return data.exists;
-    } catch (error) {
-      console.error('Error checking user:', error);
+    } catch {
       return false;
     }
   };
@@ -54,30 +50,27 @@ function SignUp() {
     setIsSubmitting(true);
     setErrors({ username: '', password: '', general: '' });
 
-    // Clientside validation
-    // Email validation
     if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      setErrors({...errors, general: 'Please enter a valid email'});
-      return;
-    }
-
-    // Confirm password validation
-    if (formData.password !== formData.confirmPassword) {
-      setErrors((prev) => ({ ...prev, password: 'Passwords do not match' }));
+      setErrors(prev => ({ ...prev, general: 'Please enter a valid email' }));
       setIsSubmitting(false);
       return;
     }
 
-    // Password length validation
+    if (formData.password !== formData.confirmPassword) {
+      setErrors(prev => ({ ...prev, password: 'Passwords do not match' }));
+      setIsSubmitting(false);
+      return;
+    }
+
     if (formData.password.length < 6) {
-      setErrors((prev) => ({ ...prev, password: 'Password must be at least 6 characters' }));
+      setErrors(prev => ({ ...prev, password: 'Password must be at least 6 characters' }));
       setIsSubmitting(false);
       return;
     }
 
     const userExists = await checkUserExists(formData.username);
     if (userExists) {
-      setErrors((prev) => ({ ...prev, username: 'Username already taken' }));
+      setErrors(prev => ({ ...prev, username: 'Username already taken' }));
       setIsSubmitting(false);
       return;
     }
@@ -96,43 +89,34 @@ function SignUp() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle Cognito-specific errors
         if (data.code === 'UsernameExistsException') {
           throw new Error('Username already exists');
         }
         throw new Error(data.error || 'Registration failed');
       }
 
-      // Show verification popup instead of immediate redirect
       setShowVerification(true);
 
     } catch (error: unknown) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
-        general: error instanceof Error 
-          ? error.message 
-          : 'Registration failed. Please try again.',
+        general: error instanceof Error ? error.message : 'Registration failed. Please try again.',
       }));
     } finally {
       setIsSubmitting(false);
     }
-  }
-    const handleVerify = async (code: string) => {
+  };
+
+  const handleVerify = async (code: string) => {
     try {
       const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/confirm-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: formData.email,
-          code 
-        }),
+        body: JSON.stringify({ email: formData.email, code }),
       });
 
-      if (!response.ok) {
-        throw new Error('Verification failed');
-      }
+      if (!response.ok) throw new Error('Verification failed');
 
-      // Verification successful
       alert('Email verified successfully! You may now sign in with your new account.');
       navigate('/sign-in');
     } catch (error) {
@@ -142,15 +126,13 @@ function SignUp() {
 
   const handleResendCode = async () => {
     try {
-      const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/resend-code', { // still need to add the func
+      const response = await fetch('https://hd8kev8grc.execute-api.ap-southeast-1.amazonaws.com/prod/resend-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to resend code');
-      }
+      if (!response.ok) throw new Error('Failed to resend code');
 
       alert('Verification code resent successfully!');
     } catch (error) {
@@ -159,24 +141,21 @@ function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-orange-500 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-10 h-10 rounded-full bg-gray-300 mb-2"></div>
-          <h1 className="text-2xl font-bold text-center text-blue-800">
-            Sign up for Komyut!
-          </h1>
+    <div className="min-h-screen bg-orange-500 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full max-w-md">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-800">Sign up for</h1>
+          <img src={komyutLogo} alt="Komyut Logo" className="h-6 sm:h-8 object-contain" />
         </div>
 
         <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm font-medium text-gray-700">Create Email</label>
             <input
-              type="text"
+              type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder=""
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               required
             />
@@ -229,14 +208,15 @@ function SignUp() {
             <Link to="/sign-in">Already have an account? Login here!</Link>
           </div>
         </form>
+
         {showVerification && (
           <VerificationPopup
             email={formData.email}
             onVerify={handleVerify}
             onResendCode={handleResendCode}
             onClose={() => {
-                setShowVerification(false);
-                navigate('/sign-in'); // Redirect to sign-in after closing the popup
+              setShowVerification(false);
+              navigate('/sign-in');
             }}
           />
         )}

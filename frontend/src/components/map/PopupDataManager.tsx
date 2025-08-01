@@ -1,29 +1,43 @@
+import { getLocFromCoord } from '@/lib/geocoding';
 import type { JeepneyLeg } from '../FarePopUp';
 import { type RouteData } from './useRouteStore';
 
-export const populateFarePopupLegs = (routeData: RouteData, routeColors: Record<string, string>): JeepneyLeg[] => {
-    return routeData.legs.map((leg, index) => {        
-        const fareInfo = 
-            leg.type === 'jeepney' ? routeData.fareData.legs[leg.routeId] : undefined;
+export const populateFarePopupLegs = async (
+    routeData: RouteData,
+    routeColors: Record<string, string>
+): Promise<JeepneyLeg[]> => {
+    const legsWithGeo = await Promise.all(
+        routeData.legs.map(async (leg, index) => {
+            const fareInfo =
+                leg.type === 'jeepney' ? routeData.fareData.legs[leg.routeId] : undefined;
 
-        let destinationCoord: [number, number] | null = null;
+            let destinationCoord: [number, number] | null = null;
 
-        const isLastLeg = index === routeData.legs.length - 1;
-        const isLastWalkLeg = leg.type === 'walk' && index === routeData.legs.length - 2;
+            const isLastLeg = index === routeData.legs.length - 1;
+            const isLastWalkLeg = leg.type === 'walk' && index === routeData.legs.length - 2;
 
-        if (!isLastLeg && !isLastWalkLeg) {
-            destinationCoord = routeData.legs[index + 1].coordinates[0] ?? null;            
-        }
+            if (!isLastLeg && !isLastWalkLeg) {
+                destinationCoord = routeData.legs[index + 1].coordinates[0] ?? null;
+            }
 
-        return {
-            type: (leg.type) as 'jeepney' | 'walk',
-            name: leg.routeName ?? leg.routeId,
-            fare: fareInfo?.fare ?? 0,
-            color: routeColors[leg.routeId] ?? '#000000',
-            // destination: destinationCoord ? `${destinationCoord[0]},${destinationCoord[1]}` : 'to your destination.',
-            destination: destinationCoord ? '[GEOCODING NOT AVAILABLE]' : 'to your destination.',
-        }
-    });
+            let locFromCoord: string | null = null;
+            if (destinationCoord) {
+                locFromCoord = await getLocFromCoord([destinationCoord[0], destinationCoord[1]]);
+            }
+
+            return {
+                type: leg.type as 'jeepney' | 'walk',
+                name: leg.routeName ?? leg.routeId,
+                fare: fareInfo?.fare ?? 0,
+                color: routeColors[leg.routeId] ?? '#000000',
+                destination: destinationCoord
+                    ? (locFromCoord || '[GEOCODING NOT AVAILABLE]')
+                    : 'to your destination.',
+            };
+        })
+    );
+
+    return legsWithGeo;
 };
 
 function getDistance(routeData: RouteData) {
