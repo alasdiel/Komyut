@@ -11,7 +11,7 @@ async function getEc2OSRMPrivateIp(): Promise<String> {
     if (cachedPrivateIp) return cachedPrivateIp;
 
     const ssm = new AWS.SSM();
-    const param = await ssm.getParameter({ Name: '/komyut/ec2/private-ip' }).promise();
+    const param = await ssm.getParameter({ Name: '/komyut/ec2/public-ip' }).promise();
     cachedPrivateIp = param.Parameter?.Value!;
     return cachedPrivateIp;
 }
