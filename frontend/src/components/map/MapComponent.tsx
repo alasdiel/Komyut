@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useColorMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
-import { FarePopup } from '../FarePopUp.tsx';
+import { FarePopup, type JeepneyLeg } from '../FarePopUp.tsx';
 import { displayEstimatedTime, displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
 import { CalculateButton } from './CalculateButton.tsx';
 
@@ -21,6 +21,7 @@ const MapComponent = () => {
 	const { routeData } = useRouteStore();
 	const stylejson = `https://api.maptiler.com/maps/openstreetmap/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`;
 
+	//Initialize map on load
 	useEffect(() => {
 		if (!mapContainer.current) return;
 
@@ -46,6 +47,7 @@ const MapComponent = () => {
 		};
 	}, [stylejson, setStartPos, setEndPos]);
 
+	//Draw legs on leg data available
 	useEffect(() => {
 		if (!map.current) return;
 
@@ -114,6 +116,26 @@ const MapComponent = () => {
 		
 	}, [routeData, setRouteColor]);
 
+	//Effect for when geocoding becomes available
+	useEffect(() => {		
+		if(!routeData) return;
+
+		let isMounted = true;
+
+		const loadLegs = async() => {
+			const legsData = await populateFarePopupLegs(routeData, routeColors);
+			if(isMounted) {
+				setLegs(legsData);
+			}
+		};
+
+		loadLegs();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [routeData, routeColors]);
+
 	return (
 		<div className="flex flex-row min-h-screen justify-center items-center bg-orange-400" style={{ height: '100vh', width: '100%' }}>
 			<div ref={mapContainer} style={{ height: '100%', width: '100%' }} />			
@@ -121,7 +143,7 @@ const MapComponent = () => {
 				<FarePopup
 					eta={displayEstimatedTime(routeData)}
 					distance={displayTotalDistance(routeData)}
-					legs={populateFarePopupLegs(routeData, routeColors)}															
+					legs={legs}															
 				/>
 			)}
 			<CalculateButton/>
