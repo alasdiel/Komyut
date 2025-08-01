@@ -4,7 +4,7 @@ import githubLogo from "@/assets/github-icon.svg";
 
 export default function Footer() {
   return (
-    <footer className="bg-komyut-orange text-white px-4 sm:px-6 md:px-8 py-14 relative overflow-hidden">
+    <footer id="contact" className="bg-komyut-orange text-white px-4 sm:px-6 md:px-8 py-14 relative overflow-hidden">
       {/* Decorative Logo (Responsive watermark style) */}
       <div className="absolute -bottom-65 right-0 w-[300px] sm:w-[340px] md:w-[380px] lg:w-[420px] opacity-100 z-0 pointer-events-none select-none">
         <img

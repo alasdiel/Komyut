@@ -81,7 +81,7 @@ const featuresData: FeatureItemProps[] = [
 
 const FeatureSection = () => {
   return (
-    <section className="px-4 md:px-8 py-16 bg-white">
+    <section id="services" className="px-4 md:px-8 py-16 bg-white">
       <div className="max-w-7xl mx-auto md:text-left">
         <h2 className="font-epilogue text-komyut-green font-extrabold uppercase text-lg tracking-wider mb-4">
           Features
