@@ -38,11 +38,10 @@ export default function GeocodingComponent({}) {
           apiKey={import.meta.env.VITE_MAPTILER_KEY}
           mapController={mapController}
           bbox={[125.204904, 6.795854, 125.892734, 7.516401]}
-          flyTo={false}
           noResultsMessage={"No results found"}
           placeholder={`Enter ${label.toLowerCase()}`}
-          onSelect={(feature) => {
-            console.log('Selected feature:', feature);
+          onSelect={(selected) => {
+            const feature = selected.feature;
             if (feature?.geometry?.type === 'Point') {
               const [lng, lat] = feature.geometry.coordinates;
               onSelect({ lat, lng });
