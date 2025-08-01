@@ -26,19 +26,47 @@ const mobileLinkClasses =
 const buttonClasses =
   "bg-komyut-orange hover:bg-orange-600 text-komyut-white text-base md:text-lg px-6 py-3 rounded-full font-extrabold tracking-wider";
 
+interface User {
+  username: string; 
+  email: string;
+  avatar?: string;
+}
+
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
-  const [user, setUser] = useState<{ //HARD CODED USER FOR NOW
-    name: string;
-    email: string;
-    avatar: string;
-  } | null>({
-    name: "Anthony James",
-    email: "ajmoran@up.edu.ph",
-    avatar: avatarImg,
-  });
+  // Check if user is logged in via Cognito session
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("accessToken"); 
+      if (!token) return;
+
+      try {
+        // Decode the JWT token to get user info
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        //Ensure token is valid and not expired
+        if (payload.exp * 1000 < Date.now()) {
+          throw new Error("Token expired");
+        }
+
+        setUser({
+          email: payload.email,
+          username: payload['cognito:username'] || payload.email.split('@')[0],
+          avatar: avatarImg
+        });
+      } catch (error) {
+        console.error("Invalid token:", error);
+        localStorage.removeItem("accessToken");
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
 
   // Auto-close mobile menu on desktop resize
   useEffect(() => {
@@ -121,7 +149,7 @@ export default function Navbar() {
                       className="w-12 h-12 rounded-full"
                     />
                     <div>
-                      <p className="tracking-wider font-bold text-komyut-grey">{user.name}</p>
+                      <p className="tracking-wider font-bold text-komyut-grey">{user.username}</p>
                       <p className="tracking-wider text-sm text-komyut-grey hover:text-komyut-blue">{user.email}</p>
                     </div>
                   </div>
@@ -181,7 +209,7 @@ export default function Navbar() {
                   className="w-10 h-10 rounded-full"
                 />
                 <div>
-                  <p className="text-base font-bold text-gray-900">{user.name}</p>
+                  <p className="text-base font-bold text-gray-900">{user.username}</p>
                   <p className="text-sm text-gray-600">{user.email}</p>
                 </div>
               </div>
