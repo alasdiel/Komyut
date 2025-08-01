@@ -156,7 +156,6 @@ const MapComponent = () => {
 					legs={legs}															
 				/>
 			)}
-			<CalculateButton/>
 		</div>
 	);
 };
