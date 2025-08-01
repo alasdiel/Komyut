@@ -26,61 +26,57 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		// 💿 DYNAMODB TABLES
 
-		// //#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
-		// // VPC
-		// const vpc = new ec2.Vpc(this, 'KomyutVPC', {
-		// 	maxAzs: 2,
-		// 	subnetConfiguration: [
-		// 		{
-		// 			cidrMask: 24,
-		// 			name: 'private-subnet',
-		// 			subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-		// 		},
-		// 		{
-		// 			cidrMask: 24,
-		// 			name: 'public-subnet',
-		// 			subnetType: ec2.SubnetType.PUBLIC
-		// 		},
-		// 	],
-		// });
+		//#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
+		// VPC
+		const vpc = new ec2.Vpc(this, 'KomyutVPC', {
+			maxAzs: 1,
+			subnetConfiguration: [
+				{
+					cidrMask: 24,
+					name: 'public-subnet',
+					subnetType: ec2.SubnetType.PUBLIC
+				},
+			],
+			natGateways: 0,
+		});
 
-		// // Security Groups
-		// const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
-		// 	vpc,
-		// 	allowAllOutbound: true,
-		// 	description: 'Allow Lambdas to access OSRM'
-		// });
-		// const sgLambda = new ec2.SecurityGroup(this, 'KomyutSG_lambda', {
-		// 	vpc,
-		// 	allowAllOutbound: true
-		// });
-		// sgEC2.addIngressRule(sgLambda, ec2.Port.tcp(5000), 'Allow Lambdas to access OSRM');
-		// sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
-		// sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'shh(insecure)');
+		// Security Groups
+		const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
+			vpc,
+			allowAllOutbound: true,
+			description: 'Allow Lambdas to access OSRM'
+		});
+				
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');		
 
-		// // EC2		
-		// const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
-		// 	instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-		// 	// machineImage: ec2.MachineImage.latestAmazonLinux2023(),
-		// 	machineImage: ec2.MachineImage.genericLinux({
-		// 		'ap-southeast-1': 'ami-0714c5f5fa186c34d'
-		// 	}),
-		// 	blockDevices: [{
-		// 		deviceName: '/dev/xvda',
-		// 		volume: ec2.BlockDeviceVolume.ebs(30),
-		// 	}],
+		// EC2		
+		const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
+			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
+			
+			machineImage: ec2.MachineImage.genericLinux({
+				'ap-southeast-1': 'ami-09957f087e462106d'
+			}),
 
-		// 	vpc,
-		// 	vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-		// 	securityGroup: sgEC2,
+			blockDevices: [{
+				deviceName: '/dev/xvda',
+				volume: ec2.BlockDeviceVolume.ebs(30),
+			}],
 
-		// 	keyName: 'komyut-osrm-keypair',			
-		// });
-		// new ssm.StringParameter(this, 'KomyutEc2PrivateIP', { parameterName: '/komyut/ec2/private-ip', stringValue: ec2Instance.instancePrivateIp });
-		// ec2Instance.role.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'));		
-		// ec2Instance.addUserData(
-		// 	fs.readFileSync(path.join(__dirname, '../helpers/ec2.sh'), 'utf-8').replace(/\${ROUTEPACK_BUCKET_SUFFIX}/g, process.env.ROUTEPACK_BUCKET_SUFFIX!)
-		// );
+			vpc,
+			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+			securityGroup: sgEC2,
+
+			keyName: 'komyut-osrm-keypair',			
+		});
+
+		new ssm.StringParameter(this, 'KomyutEc2PublicIP', {
+			parameterName: '/komyut/ec2/public-ip',
+			stringValue: ec2Instance.instancePublicIp 
+		});
+
+		ec2Instance.role.addManagedPolicy(
+			iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')
+		);				
 		//#endregion
 
 		//#region 🏊 COGNITO USER POOL
