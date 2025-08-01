@@ -16,6 +16,8 @@ const MapComponent = () => {
 	const routeColors = useColorMapStore(s => s.routeColors);
 	const setRouteColor = useColorMapStore(s => s.setRouteColor);
 
+	const [legs, setLegs] = useState<JeepneyLeg[]>([]);
+
 	const mapContainer = useRef<HTMLDivElement | null>(null);
 	const map = useRef<maplibregl.Map | null>(null);
 	const { routeData } = useRouteStore();
