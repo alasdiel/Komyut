@@ -282,6 +282,17 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		//FRONTEND CONFIG
 		new cr.AwsCustomResource(this, 'PostDeployFrontendConfigUpload', {
+			onCreate: {
+				service: 'S3',
+				action: 'putObject',
+				parameters: {
+					Bucket: frontendBucket.bucketName,
+					Key: 'cdk-config.json',
+					Body: JSON.stringify({ apiBaseUrl: api.url }),
+					ContentType: 'application/json',
+				},
+				physicalResourceId: cr.PhysicalResourceId.of('PostDeployFrontendConfigUploadFixed')
+			},
 			onUpdate: {
 				service: 'S3',
 				action: 'putObject',
