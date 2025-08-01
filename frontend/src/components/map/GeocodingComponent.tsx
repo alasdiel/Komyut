@@ -2,34 +2,43 @@ import { useState, useEffect } from 'react';
 import { GeocodingControl } from '@maptiler/geocoding-control/react';
 import '@maptiler/geocoding-control/style.css';
 import { useMapStore } from './useMapStore';
-import { useRouteStore } from './useRouteStore';
+import { useKomyutMapStore, useRouteStore } from './useRouteStore';
 import { CalculateButton } from './CalculateButton';
 import type React from 'react';
 
-export default function GeocodingComponent({}) {
+export default function GeocodingComponent() {
   const mapController = useMapStore((s) => s.mapController);
+  const startMarker = useKomyutMapStore((s) => s.startMarker);
+  const endMarker = useKomyutMapStore((s) => s.endMarker);
   const setStartPos = useRouteStore((s) => s.setStartPos);
   const setEndPos = useRouteStore((s) => s.setEndPos);
-  const [ isMobile, setIsMobile ] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+
   const toggleDropdown = () => setOpen(!open);
+
   useEffect(() => {
-      const checkIfMobile = () => {
-        setIsMobile(window.innerWidth <= 768);
-      };
-      
-      checkIfMobile();
-      window.addEventListener('resize', checkIfMobile);
-      return () => window.removeEventListener('resize', checkIfMobile);
-    }, []); 
-  if (!mapController) return null;
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  if (!mapController) {
+    return null;
+  }
 
   const GeocoderField = ({
     label,
     onSelect,
+    marker,
   }: {
     label: string;
     onSelect: (lngLat: { lat: number; lng: number }) => void;
+    marker?: maplibregl.Marker;
   }) => (
     <div className="mb-6">
       <label className="block text-sm font-medium text-orange-500 mb-1">{label}</label>
@@ -45,6 +54,10 @@ export default function GeocodingComponent({}) {
             if (feature?.geometry?.type === 'Point') {
               const [lng, lat] = feature.geometry.coordinates;
               onSelect({ lat, lng });
+
+              if (marker) {
+                marker.setLngLat([lng, lat]);
+              }
             }
           }}
         />
@@ -86,10 +99,10 @@ export default function GeocodingComponent({}) {
       {open && (
       <div className="flex flex-col gap-10 my-5">
         <div className="mb-50">
-          <GeocoderField label="Start Point" onSelect={setStartPos} />
+          <GeocoderField label="Start Point" onSelect={setStartPos} marker={startMarker}/>
         </div>
         <div className="mb-50">
-          <GeocoderField label="End Point" onSelect={setEndPos} />
+          <GeocoderField label="End Point" onSelect={setEndPos} marker={endMarker}/>
         </div>
       
       <div className="flex justify-center">

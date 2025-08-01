@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from 'zustand';
 
 export interface RouteLeg {
   type: string;
@@ -28,6 +28,24 @@ interface RouteState {
   routeData: RouteData | null;
   setRouteData: (data: RouteData) => void
 }
+
+interface MapState {
+  map?: maplibregl.Map;
+  mapController?: unknown;
+  startMarker?: maplibregl.Marker;
+  endMarker?: maplibregl.Marker;
+  setMap: (map: maplibregl.Map) => void;
+  setMapController: (controller: unknown) => void;
+  setStartMarker: (marker: maplibregl.Marker) => void;
+  setEndMarker: (marker: maplibregl.Marker) => void;
+}
+
+export const useKomyutMapStore = create<MapState>((set) => ({
+  setMap: (map: maplibregl.Map) => set({ map }),
+  setMapController: (controller: unknown) => set({ mapController: controller }),
+  setStartMarker: (marker) => set({ startMarker: marker }),
+  setEndMarker: (marker) => set({ endMarker: marker }),
+}));
 
 interface JeepColorMapState {
   routeColors: Record<string, string>;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useColorMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
+import { useColorMapStore, useKomyutMapStore, useRouteStore, type RouteLeg } from './useRouteStore.tsx';
 import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup, type JeepneyLeg } from '../FarePopUp.tsx';
@@ -49,7 +49,11 @@ const MapComponent = () => {
     map.current.on('load', () => {
       setMapInstance(map.current!);
       setMapController(createMapLibreGlMapController(map.current!, maplibregl));
-      createMarkers(map.current!, { setStartPos, setEndPos });
+      
+	  const { startMarker, endMarker } = createMarkers(map.current!, { setStartPos, setEndPos });
+
+	  useKomyutMapStore.getState().setStartMarker(startMarker);
+	  useKomyutMapStore.getState().setEndMarker(endMarker);
     });
 
     return () => {
