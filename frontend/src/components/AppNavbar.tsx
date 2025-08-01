@@ -8,10 +8,10 @@ import Hamburger from "@/components/ui/hamburger";
 import komyutLogo from "@/assets/komyut-logo.svg";
 
 const navLinks = [
-  { to: "/about", label: "About Us" },
-  { to: "/services", label: "Services" },
-  { to: "/contact", label: "Contact Us" },
-  { to: "/premium", label: "Premium" },
+  { to: "#about", label: "About Us" },
+  { to: "#services", label: "Services" },
+  { to: "#contact", label: "Contact Us" },
+  { to: "/premium", label: "Premium" }, 
 ];
 
 const linkClasses =
@@ -36,7 +36,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-white shadow-md px-6 py-4 border-b font-epilogue font-light relative z-10">
+    <nav className="sticky top-0 bg-white shadow-md px-6 py-4 border-b font-epilogue font-light z-10">
       <div className="flex items-center justify-between flex-wrap">
         {/* Logo */}
         <div className="flex items-center gap-2 shrink-0 w-[7rem]">
@@ -56,9 +56,15 @@ export default function Navbar() {
             <NavigationMenuList className="flex gap-6 items-center">
               {navLinks.map(({ to, label }) => (
                 <NavigationMenuItem key={to}>
-                  <Link to={to} className={linkClasses}>
-                    {label}
-                  </Link>
+                  {to.startsWith("#") ? (
+                    <a href={to} className={linkClasses}>
+                      {label}
+                    </a>
+                  ) : (
+                    <Link to={to} className={linkClasses}>
+                      {label}
+                    </Link>
+                  )}
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
@@ -73,18 +79,21 @@ export default function Navbar() {
       {/* Mobile Dropdown (Only when open AND screen is mobile) */}
       {open && (
         <div className="mt-4 flex flex-col gap-4 md:hidden">
-          {navLinks.map(({ to, label }) => (
-            <Link key={to} to={to} className={mobileLinkClasses}>
-              {label}
-            </Link>
-          ))}
-          <div className="flex justify-center mt-2">
-            <Button asChild className={buttonClasses}>
-              <Link to="/sign-in">Sign In</Link>
-            </Button>
-          </div>
+          {navLinks.map(({ to, label }) =>
+            to.startsWith("#") ? (
+              <a key={to} href={to} className={mobileLinkClasses} onClick={() => setOpen(false)}>
+                {label}
+              </a>
+            ) : (
+              <Link key={to} to={to} className={mobileLinkClasses}>
+                {label}
+              </Link>
+            )
+          )}
+          ...
         </div>
       )}
+
     </nav>
   );
 }

@@ -8,7 +8,7 @@ function HeroSection() {
       {/* Desktop View */}
       <div className="hidden lg:block relative">
         {/* Jeepney - cropped and rotated upright */}
-        <div className="absolute right-[-3rem] xl:right-[-4rem] top-1/2 -translate-y-1/2 z-10 overflow-hidden pointer-events-none">
+        <div className="absolute right-[-3rem] xl:right-[-3.8rem] top-1/2 -translate-y-1/2 z-10 overflow-hidden pointer-events-none">
           <img
             src={jeepney}
             alt="Jeepney"
