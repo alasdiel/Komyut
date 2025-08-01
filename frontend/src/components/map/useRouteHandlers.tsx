@@ -1,4 +1,4 @@
-import { getApiBaseUrl, loadCdkConfig } from '@/lib/utils';
+import { getApiBaseUrl } from '@/lib/utils';
 import { useRouteStore } from './useRouteStore'
 
 export function useRouteHandlers() {
