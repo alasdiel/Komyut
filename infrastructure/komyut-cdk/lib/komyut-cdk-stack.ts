@@ -66,7 +66,7 @@ export class KomyutCdkStack extends cdk.Stack {
 			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
 			securityGroup: sgEC2,
 
-			keyName: 'komyut-osrm-keypair',			
+			keyName: 'komyut-ec2',			
 		});
 
 		new ssm.StringParameter(this, 'KomyutEc2PublicIP', {
