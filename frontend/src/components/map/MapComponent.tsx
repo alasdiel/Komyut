@@ -6,7 +6,6 @@ import { createMarkers } from './MarkerManager.tsx';
 import { getPathlineStyle } from './PathStyler.ts';
 import { FarePopup, type JeepneyLeg } from '../FarePopUp.tsx';
 import { displayEstimatedTime, displayTotalDistance, populateFarePopupLegs } from './PopupDataManager.tsx';
-import { CalculateButton } from './CalculateButton.tsx';
 import { useMapStore } from './useMapStore';
 import { createMapLibreGlMapController } from '@maptiler/geocoding-control/maplibregl-controller';
 
