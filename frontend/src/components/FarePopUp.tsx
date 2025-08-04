@@ -55,7 +55,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
   };
 
   const handleTouchEnd = () => {
-    if (dragPosition > 100) { // Closes window if dragged down enough
+    if (dragPosition > 100) { 
       setIsOpen(false);
     }
     setDragPosition(0);
@@ -67,7 +67,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute top-4 right-4 p-3 rounded-lg shadow-md z-10 hover:shadow-lg transition-shadow bg-white"
+        className="absolute top-4 right-4 p-3 rounded-lg shadow-md z-10 hover:shadow-lg transition-shadow"
       >
         {isOpen ? <BusIcon className="w-6 h-6 text-gray-500"/> : <BusIcon className="w-6 h-6" />}
       </button>
@@ -118,7 +118,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
                 ))}
               </div>
 
-                <div className="bg-orange-500 text-white p-5 w-full mt-4 rounded">
+                <div className="bg-orange-500 text-white p-5 w-full mt-4">
                     <div className="flex justify-between max-w-md mx-auto">
                     <span className="text-2xl font-bold font-epilogue">TOTAL FARE</span>
                     <span className="text-2xl font-bold font-epilogue">₱ {totalFare}</span>
@@ -145,7 +145,7 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
 
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-opacity-0 z-50"
+          className="fixed inset-0 z-50"
           onClick={() => setIsOpen(false)}
         >
           <div 
