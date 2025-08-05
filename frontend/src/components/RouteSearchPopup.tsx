@@ -244,7 +244,7 @@ export function RouteSearchPopup({ isOpen, onClose, onRouteSubmit }: RouteSearch
   // MOBILE VIEW
   return isOpen ? (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50"
+      className="fixed inset-0 z-50"
       onClick={onClose}
     >
       <div 
