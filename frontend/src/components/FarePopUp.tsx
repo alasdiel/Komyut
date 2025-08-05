@@ -140,12 +140,13 @@ export function FarePopup({ eta, distance, legs }: FarePopupProps) {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-0 left-0 right-0 bg-orange-500 text-white py-3 px-6 rounded-t-lg shadow-lg"
       >
-        <ArrowUpIcon className="w-6 h-6 inline-block mr-2" />
+        <ArrowUpIcon className="w-6 h-6 bg inline-block mr-2" />
       </button>
 
       {isOpen && (
         <div 
           className="fixed inset-0 z-50"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}
           onClick={() => setIsOpen(false)}
         >
           <div 
