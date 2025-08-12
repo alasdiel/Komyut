@@ -141,6 +141,33 @@ export class KomyutCdkStack extends cdk.Stack {
 			autoDeleteObjects: true,
 		});
 
+		// CloudFront distribution for the frontend
+		const frontendDistribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
+			defaultBehavior: {
+				origin: new origins.S3Origin(frontendBucket),
+				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+			},
+			defaultRootObject: 'index.html',
+			errorResponses: [
+				{
+					httpStatus: 404,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html'
+				},
+				{
+					httpStatus: 403,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html'
+				}
+			],
+			priceClass: cloudfront.PriceClass.PRICE_CLASS_200
+		});
+
+		new cdk.CfnOutput(this, 'FrontendDistributionUrl', {
+			value: frontendDistribution.distributionDomainName
+		});
+
 		// The DeployFrontend BucketDeployment is at the very last part of the cdk declaration
 		// this is a workaround for an issue
 
