@@ -22,12 +22,7 @@ export class KomyutCdkStack extends cdk.Stack {
 	constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
 
-		// The code that defines your stack goes here    
-
-		// 💿 DYNAMODB TABLES
-
-		//#region ⚡ EC2 INSTANCES + VPC + SECURITY GROUPS		
-		// VPC
+		// ---------- EC2 VPC + Security ----------
 		const vpc = new ec2.Vpc(this, 'KomyutVPC', {
 			maxAzs: 1,
 			subnetConfiguration: [
@@ -40,54 +35,46 @@ export class KomyutCdkStack extends cdk.Stack {
 			natGateways: 0,
 		});
 
-		// Security Groups
 		const sgEC2 = new ec2.SecurityGroup(this, 'KomyutSG_ec2', {
 			vpc,
 			allowAllOutbound: true,
 			description: 'Allow Lambdas to access OSRM'
 		});
-				
-		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');		
+		sgEC2.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5000), 'Allow remote to access OSRM');
 
-		// EC2		
 		const ec2Instance = new ec2.Instance(this, 'KomyutOSRM-EC2', {
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
-			
 			machineImage: ec2.MachineImage.genericLinux({
 				'ap-southeast-1': 'ami-09957f087e462106d'
 			}),
-
 			blockDevices: [{
 				deviceName: '/dev/xvda',
 				volume: ec2.BlockDeviceVolume.ebs(30),
 			}],
-
 			vpc,
 			vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
 			securityGroup: sgEC2,
-
-			keyName: 'komyut-ec2',			
+			keyName: 'komyut-ec2',
 		});
 
 		new ssm.StringParameter(this, 'KomyutEc2PublicIP', {
 			parameterName: '/komyut/ec2/public-ip',
-			stringValue: ec2Instance.instancePublicIp 
+			stringValue: ec2Instance.instancePublicIp
 		});
 
 		ec2Instance.role.addManagedPolicy(
 			iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore')
-		);				
-		//#endregion
+		);
 
-		//#region 🏊 COGNITO USER POOL
+		// ---------- Cognito ----------
 		const userPool = new cognito.UserPool(this, 'KomyutUserPool', {
 			userPoolName: 'KomyutUsers',
-			selfSignUpEnabled: true, // Allow users to sign up
-			signInAliases: { email: true }, // Allow sign in with email
+			selfSignUpEnabled: true,
+			signInAliases: { email: true },
 			autoVerify: { email: true },
 			userVerification: {
 				emailSubject: 'Your Komyut Verification Code',
-				emailBody: 'Your verification code is: {####}', // Code will replace {####}
+				emailBody: 'Your verification code is: {####}',
 				emailStyle: cognito.VerificationEmailStyle.CODE
 			},
 			passwordPolicy: {
@@ -95,7 +82,7 @@ export class KomyutCdkStack extends cdk.Stack {
 				requireDigits: false,
 				requireSymbols: false,
 				requireUppercase: false,
-				requireLowercase: false, // All optional, adjust as needed
+				requireLowercase: false,
 			},
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 		});
@@ -107,47 +94,31 @@ export class KomyutCdkStack extends cdk.Stack {
 
 		new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
 		new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
-		//#endregion
 
-		//#region 🪣 S3 BUCKETS
+		// ---------- S3 Buckets ----------
 		const routePackBucket = new s3.Bucket(this, 'RoutePackBucket', {
 			bucketName: `komyut-routepack-bucket-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 			publicReadAccess: false,
-		});		
-		
+		});
+
 		new s3deploy.BucketDeployment(this, 'RoutePackBundleData', {
 			destinationBucket: routePackBucket,
 			sources: [s3deploy.Source.asset(path.join(__dirname, '../assets/routepack-bundle'))],
 			destinationKeyPrefix: 'routepack-bundle',
-		});		
+		});
 
 		const distPath = path.resolve(process.cwd(), '../../frontend/dist');
-		console.log(distPath);
 
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
 			bucketName: `komyut-frontend-dev-${cdk.Stack.of(this).account}-${cdk.Stack.of(this).region}`,
-			publicReadAccess: true,
-			blockPublicAccess: new s3.BlockPublicAccess({
-				blockPublicAcls: false,
-				ignorePublicAcls: false,
-				blockPublicPolicy: false,
-				restrictPublicBuckets: false,
-			}),
-			websiteIndexDocument: 'index.html',
-			websiteErrorDocument: 'index.html',
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 		});
 
-		// The DeployFrontend BucketDeployment is at the very last part of the cdk declaration
-		// this is a workaround for an issue
-
-		//#endregion
-
-		//#region ⭐ LAMBDA FUNCTIONS (use lambda-nodejs NodejsFunction() instead to avoid building to .js)
-		// ANTHONY'S WORK
+		// ---------- Lambda Functions ----------
 		const fnHelloWorld = new lambdaNJS.NodejsFunction(this, 'HelloWorldFunction', {
 			entry: path.join(__dirname, '../lambda/helloworld/helloworld.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
@@ -157,16 +128,10 @@ export class KomyutCdkStack extends cdk.Stack {
 			entry: path.join(__dirname, '../lambda/calcplan/calcplan.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
 			timeout: cdk.Duration.seconds(300),
-			memorySize: 3008, // Adjust memory size as needed (Higher Memory also = faster cpu), 3008 is the limit for Lambda
+			memorySize: 3008,
 			environment: {
 				ROUTEPACK_BUCKET_NAME: routePackBucket.bucketName,
 			},
-
-			// vpc: vpc,
-			// vpcSubnets: {
-			// 	subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-			// },
-			// securityGroups: [sgLambda],
 		});
 		fnCalcPlan.addToRolePolicy(new iam.PolicyStatement({
 			actions: ['ssm:GetParameter'],
@@ -174,7 +139,7 @@ export class KomyutCdkStack extends cdk.Stack {
 		}));
 		routePackBucket.grantRead(fnCalcPlan);
 
-		// Authentication Functions
+		// Cognito auth lambdas
 		const fnConfirmSignup = new lambdaNJS.NodejsFunction(this, 'ConfirmSignupFunction', {
 			entry: path.join(__dirname, '../lambda/confirmSignup/confirmSignup.ts'),
 			runtime: lambda.Runtime.NODEJS_20_X,
@@ -211,7 +176,6 @@ export class KomyutCdkStack extends cdk.Stack {
 			},
 		});
 
-		// Add Cognito permissions to all auth functions
 		const cognitoPolicy = new iam.PolicyStatement({
 			actions: [
 				'cognito-idp:SignUp',
@@ -228,9 +192,8 @@ export class KomyutCdkStack extends cdk.Stack {
 		fnSignin.addToRolePolicy(cognitoPolicy);
 		fnConfirmSignup.addToRolePolicy(cognitoPolicy);
 		fnResendVerificationCode.addToRolePolicy(cognitoPolicy);
-		//#endregion
 
-		//#region ☁️ CLOUDFRONT DISTRIBUTION
+		// ---------- CloudFront for RoutePack ----------
 		const routePackDistribution = new cloudfront.Distribution(this, 'RoutePackDistribution', {
 			defaultBehavior: {
 				origin: new origins.S3Origin(routePackBucket),
@@ -239,52 +202,61 @@ export class KomyutCdkStack extends cdk.Stack {
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 			},
 			defaultRootObject: 'routepack-bundle/routepack.json',
-			priceClass: cloudfront.PriceClass.PRICE_CLASS_200 // Choose 200 or 300 as they cover the regions we need
+			priceClass: cloudfront.PriceClass.PRICE_CLASS_200
 		});
-		//#endregion	
 
-		//#region 🚦 APIGATEWAY DEFINITION
+		// ---------- API Gateway ----------
 		const api = new apigw.RestApi(this, 'KomyutRestApi', {
 			defaultCorsPreflightOptions: CORS_CONFIG
 		});
 
-		// Endpoints
-		api.root.addResource('hello-world')
-			.addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
+		api.root.addResource('hello-world').addMethod('GET', new apigw.LambdaIntegration(fnHelloWorld));
+		api.root.addResource('calc-plan').addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan));
+		api.root.addResource('signin').addMethod('POST', new apigw.LambdaIntegration(fnSignin));
+		api.root.addResource('signup').addMethod('POST', new apigw.LambdaIntegration(fnSignup));
+		api.root.addResource('confirm-signup').addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup));
+		api.root.addResource('resend-code').addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode));
 
-		api.root.addResource('calc-plan')
-			.addMethod('POST', new apigw.LambdaIntegration(fnCalcPlan, {
-				proxy: true,
-			}));
+		// ---------- CloudFront for Frontend ----------
+		const oai = new cloudfront.OriginAccessIdentity(this, 'FrontendOAI');
+		frontendBucket.grantRead(oai);
 
-		api.root.addResource('signin')
-			.addMethod('POST', new apigw.LambdaIntegration(fnSignin, {
-				proxy: true,
-			}));
-		api.root.addResource('signup')
-			.addMethod('POST', new apigw.LambdaIntegration(fnSignup, {
-				proxy: true,
-			}));
-		api.root.addResource('confirm-signup')
-			.addMethod('POST', new apigw.LambdaIntegration(fnConfirmSignup, {
-				proxy: true,
-			}));
-		api.root.addResource('resend-code')
-			.addMethod('POST', new apigw.LambdaIntegration(fnResendVerificationCode, {
-				proxy: true,
-			}));
-		
-		//#endregion
+		const frontendDistribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
+			defaultBehavior: {
+				origin: new origins.S3Origin(frontendBucket, { originAccessIdentity: oai }),
+				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+			},
+			defaultRootObject: 'index.html',
+			errorResponses: [
+				{
+					httpStatus: 403,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html',
+					ttl: cdk.Duration.minutes(0),
+				},
+				{
+					httpStatus: 404,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html',
+					ttl: cdk.Duration.minutes(0),
+				}
+			],
+		});
 
-		//#region FRONTEND BUCKET DEPLOYMENT
+		// ---------- Deploy Frontend to S3 & Invalidate CF ----------
 		new s3deploy.BucketDeployment(this, 'DeployFrontend', {
 			sources: [
 				s3deploy.Source.asset(distPath),
-				s3deploy.Source.data('cdk-config.json', JSON.stringify({ apiBaseUrl: api.url })),	
+				s3deploy.Source.data('cdk-config.json', JSON.stringify({ apiBaseUrl: api.url })),
 			],
-			destinationBucket: frontendBucket,	
-			prune: false,					
+			destinationBucket: frontendBucket,
+			prune: false,
+			distribution: frontendDistribution,
+			distributionPaths: ['/*'],
 		});
-		//#endregion
+
+		new cdk.CfnOutput(this, 'FrontendURL', { value: `https://${frontendDistribution.domainName}` });
 	}
 }
